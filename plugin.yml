@@ -1,0 +1,9 @@
+name: Sedimentology
+main: org.foo_projects.sofar.Sedimentology.Sedimentology
+version: 1
+commands:
+    sedimentology:
+        description: Display statistics from the sedimentology plugin 
+        usage: /sedimentology
+        permission: sedimentology
+        permission-message: You do not have sufficient privileges to do that!

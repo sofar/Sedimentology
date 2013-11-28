@@ -1,0 +1,27 @@
+Sedimentology - a bukkit plugin that simulates erosion and sedimentation.
+
+This plugin attempts to create processes that are involved in the transport
+and deposition of sediments:
+- water picking up material
+- transportation down slopes
+- weather influence
+- material falling down cliffs
+- material decaying/degrading into smaller grained materials
+
+The plugin doesn't properly recreate real geologic processes, instead it
+mimics the bahavior of erosion and deposition by rolling a dice for
+most of the factors involved, and if the roll was succesful, proceed
+to the next step.
+
+Material hardness and resistance are taken into account - some materials
+are easier displaced than others. Some materials degrade easier than
+others. Some materials (sand) have a different angle of repose.
+
+This plugin isn't meant to enhance game play per se, it will operate slowly
+over time and vegetation will prevent most of it's effects from taking
+a toll on the landscape in most cases, so it will take a long time in
+default settings from actually doing anything noticeable. Because dirt
+naturally gets a grass cover in Minecraft it will be unlikely that
+this plugin does significant damage to your world. Of course, planting
+stuff is still advisable if you want to reduce the effects of the plugin
+further.
