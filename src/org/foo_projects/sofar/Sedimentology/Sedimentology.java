@@ -119,7 +119,7 @@ public final class Sedimentology extends JavaPlugin {
 
 	public void sed(World world) {
 		stat_considered++;
-	   	Chunk ChunkList[] = world.getLoadedChunks();
+		Chunk ChunkList[] = world.getLoadedChunks();
 		Chunk c = ChunkList[(int) Math.abs(rnd.nextDouble() * ChunkList.length)];
 
 		double hardness;
@@ -262,9 +262,13 @@ waterloop:
 						case PUMPKIN:
 						case VINE:
 						case SUGAR_CANE:
-							/* distance to vegetation: 0.3 to 3.0 */
+							/* distance to vegetation: 3.0 (far) to 0.3 (near) */
 							double d = (Math.abs(xx - x) + Math.abs(yy - y) + Math.abs(zz -z)) / 3.0;
-							double f = 0.5 / (4.0 - d); /* 0.5 / (3.7 -> 1.0) */
+							/* somewhat complex calculation here to make the chance
+							 * proportional to the distance: 0.5 / (1.0 -> 3.7)
+							 * Basically ends up being 0.5 (far) to 0.135 (near)
+							 */
+							double f = 0.5 / (4.0 - d); 
 							if (f < vegetationfactor)
 								vegetationfactor = f;
 							break; //vegetationloop;
