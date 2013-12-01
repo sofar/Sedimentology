@@ -110,7 +110,6 @@ public final class Sedimentology extends JavaPlugin {
 	private int findDepositLocation(World world, int x, int y, int z) {
 		int yy = y;
 		while (true) {
-			//FIXME - this needs to "crush" small vegetation - right now it puts blocks on top of flowers...
 			switch (world.getBlockAt(x, yy, z).getType()) {
 				case AIR:
 				case WATER:
