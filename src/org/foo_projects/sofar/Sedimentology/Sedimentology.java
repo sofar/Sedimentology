@@ -394,9 +394,16 @@ displace:
 							break;
 					}
 
+					/* fix water issues at sealevel */
+					if ((y <= world.getSeaLevel()) &&
+							((world.getBlockAt(x - 1, y, z).getType() == Material.STATIONARY_WATER) ||
+								(world.getBlockAt(x + 1, y, z).getType() == Material.STATIONARY_WATER) ||
+								(world.getBlockAt(x, y, z - 1).getType() == Material.STATIONARY_WATER) ||
+								(world.getBlockAt(x, y, z + 1).getType() == Material.STATIONARY_WATER)))
+						b.setType(Material.STATIONARY_WATER);
+					else
+						b.setType(Material.AIR);
 					t.setType(b.getType());
-					b.setType(Material.AIR);
-					//FIXME fix water around origin location if needed
 
 					if (targetunderwater && !underwater) {
 						snd = Sound.SPLASH;
