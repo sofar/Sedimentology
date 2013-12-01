@@ -524,7 +524,7 @@ displace:
 					case "blocks":
 						if (split.length == 2) {
 							conf_blocks = Long.parseLong(split[1]);
-							getConfig().set("blocks",  conf_blocks);
+							getConfig().set("blocks", conf_blocks);
 							saveConfig();
 						}
 						msg = "number of blocks set to " + conf_blocks;
@@ -766,6 +766,8 @@ displace:
 
 		/* config data handling */
 		saveDefaultConfig();
+
+		conf_blocks = getConfig().getInt("blocks");
 
 		List<String> worldStringList = getConfig().getStringList("worlds");
 
