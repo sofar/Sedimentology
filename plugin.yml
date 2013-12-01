@@ -1,6 +1,6 @@
 name: Sedimentology
 main: org.foo_projects.sofar.Sedimentology.Sedimentology
-version: 1
+version: 3
 commands:
     sedimentology:
         aliases: sed

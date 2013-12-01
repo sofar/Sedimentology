@@ -437,9 +437,10 @@ displace:
 				case SWAMPLAND:
 				case FROZEN_RIVER:
 				case FROZEN_OCEAN:
+					break;
+				default:
 					if (underwater)
 						break;
-				default:
 					stat_ignored_sand++;
 					return;
 			}
@@ -454,9 +455,10 @@ displace:
 				case DESERT_HILLS:
 				case FROZEN_OCEAN:
 				case FROZEN_RIVER:
-					if (underwater)
 					break;
 				default:
+					if (underwater)
+						break;
 					stat_ignored_sand++;
 					return;
 			}
