@@ -325,12 +325,12 @@ displace:
 			int step, steps;
 
 			/* find the most suitable target location to move this block to */
-			if (b.getType() == Material.SAND)
+			if ((b.getType() == Material.SAND) || (underwater))
 				steps = 24;
 			else
 				steps = 8;
 
-			int lowest = y - 1;
+			int lowest = y;
 			offset lowestoffset = new offset(0, 0);
 			offset o = new offset(0, 0);
 			int tx = 0, ty = 0, tz = 0;
@@ -342,11 +342,12 @@ displace:
 				if (h < lowest) {
 					lowest = h;
 					lowestoffset = o;
+					break;
 				}
 			}
 
 			/* flat ? */
-			if (lowest == y - 1)
+			if (lowest == y)
 				break displace;
 
 			tx = x + lowestoffset.x;
