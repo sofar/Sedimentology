@@ -154,6 +154,7 @@ public final class Sedimentology extends JavaPlugin {
 
 		boolean underwater = false;
 		boolean undermovingwater = false;
+		boolean targetunderwater = false;
 
 		int bx = (int)(Math.round(rnd.nextDouble() * 16));
 		int bz = (int)(Math.round(rnd.nextDouble() * 16));
@@ -381,14 +382,25 @@ displace:
 				case PUMPKIN:
 				case VINE:
 				case SUGAR_CANE:
+					/* play a sound at the deposition area */
 					Sound snd;
+
+					switch (world.getBlockAt(tx, ty, z).getType()) {
+						case WATER:
+						case STATIONARY_WATER:
+							targetunderwater = true;
+							break;
+						default:
+							break;
+					}
 
 					t.setType(b.getType());
 					b.setType(Material.AIR);
+					//FIXME fix water around origin location if needed
 
-					/* play a sound at the deposition area */
-					//FIXME: splash sound when dropping into water
-					if (y - ty > 2) {
+					if (targetunderwater && !underwater) {
+						snd = Sound.SPLASH;
+					} else if (y - ty > 2) {
 						snd = Sound.FALL_BIG;
 					} else {
 						switch(b.getType()) {
