@@ -18,7 +18,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -26,8 +25,11 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
-
 import org.bukkit.scheduler.BukkitScheduler;
+
+import com.massivecraft.factions.entity.BoardColls;
+import com.massivecraft.factions.entity.Faction;
+import com.massivecraft.mcore.ps.PS;
 
 /*
  * Sedimentology concepts
@@ -58,6 +60,7 @@ public final class Sedimentology extends JavaPlugin {
 	private long stat_displaced;
 	private long stat_degraded;
 	private long stat_errors;
+	private long stat_protected;
 	private long stat_ignored_edge;
 	private long stat_ignored_type;
 	private long stat_ignored_storm;
@@ -68,6 +71,7 @@ public final class Sedimentology extends JavaPlugin {
 	private long stat_ignored_hardness;
 	private int x, y, z;
 	private long conf_blocks = 10;
+	private boolean have_factions = false;
 
 	public static final List<String> defaultWorldList = Collections.unmodifiableList(Arrays.asList("world"));
 
@@ -139,6 +143,15 @@ public final class Sedimentology extends JavaPlugin {
 			}
 		}
 	}
+	
+	private boolean isProtected(World world, int xx, int yy, int zz) {
+		if (have_factions) {
+			Faction faction = BoardColls.get().getFactionAt(PS.valueOf(new Location(world, xx, yy, zz)));
+			if (!faction.isNone())
+				return true;
+		}
+		return false;
+	}
 
 	public void sed(sedWorld sedworld) {
 		stat_considered++;
@@ -186,6 +199,10 @@ public final class Sedimentology extends JavaPlugin {
 				break;
 		}
 
+		if (isProtected(world, x, y, z)) {
+			stat_protected++;
+			return;
+		}
 		Block b = world.getBlockAt(x, y, z);
 
 		/* filter out blocks we don't erode right now */
@@ -354,6 +371,11 @@ displace:
 			ty = lowest;
 			tz = z + lowestoffset.z;
 
+			if (isProtected(world, tx, ty, tz)) {
+					stat_protected++;
+					return;
+			}
+
 			/* roll to move it */
 			if (rnd.nextDouble() > resistance) {
 				stat_ignored_resistance++;
@@ -394,6 +416,7 @@ displace:
 							break;
 					}
 
+					Material m = b.getType();
 					/* fix water issues at sealevel */
 					if ((y <= world.getSeaLevel()) &&
 							((world.getBlockAt(x - 1, y, z).getType() == Material.STATIONARY_WATER) ||
@@ -403,7 +426,7 @@ displace:
 						b.setType(Material.STATIONARY_WATER);
 					else
 						b.setType(Material.AIR);
-					t.setType(b.getType());
+					t.setType(m);
 
 					if (targetunderwater && !underwater) {
 						snd = Sound.SPLASH;
@@ -581,12 +604,13 @@ displace:
 						Chunk ChunkList[] = world.getLoadedChunks();
 						msg = String.format("blocks per cycle: %d\n" +
 									"considered %d, displaced %d, degraded %d blocks in %d chunks %d errors\nlast one at %d %d %d\n" +
-									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, sand %d, hardness %d",
+									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, sand %d, hardness %d, protected %d",
 									conf_blocks,
 									stat_considered, stat_displaced, stat_degraded, ChunkList.length, stat_errors,
 									x, y, z,
 									stat_ignored_edge, stat_ignored_type, stat_ignored_storm, stat_ignored_vegetation,
-									stat_ignored_resistance, stat_ignored_water, stat_ignored_sand, stat_ignored_hardness);
+									stat_ignored_resistance, stat_ignored_water, stat_ignored_sand, stat_ignored_hardness,
+									stat_protected);
 						break;
 					case "help":
 					default:
@@ -796,6 +820,11 @@ displace:
 		for (int i = 0; i < worldStringList.size(); i++)
 			enableWorld(worldStringList.get(i));
 
+		/* Detect Factions */
+		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Factions"))
+			have_factions = true;
+		getLogger().info("Factions support is " + (have_factions ? "enabled" : "disabled"));
+		
 		/* even handler takes care of updating it from there */
 		getServer().getPluginManager().registerEvents(new SedimentologyListener(), this);
 
