@@ -284,8 +284,20 @@ public final class Sedimentology extends JavaPlugin {
 		stormfactor = 0.1;
 		if (world.hasStorm()) {
 			switch (b.getBiome()) {
+				/* arid envirnments where no precipitation happens */
 				case DESERT:
 				case DESERT_HILLS:
+				case DESERT_MOUNTAINS:
+				case MESA:
+				case MESA_BRYCE:
+				case MESA_PLATEAU:
+				case MESA_PLATEAU_FOREST:
+				case MESA_PLATEAU_FOREST_MOUNTAINS:
+				case MESA_PLATEAU_MOUNTAINS:
+				case SAVANNA:
+				case SAVANNA_MOUNTAINS:
+				case SAVANNA_PLATEAU:
+				case SAVANNA_PLATEAU_MOUNTAINS:
 					break;
 				default:
 					stormfactor = 1.0;
@@ -548,6 +560,7 @@ displace:
 			switch (b.getBiome()) {
 				case RIVER:
 				case OCEAN:
+				case DEEP_OCEAN:
 				case SWAMPLAND:
 				case FROZEN_RIVER:
 				case FROZEN_OCEAN:
@@ -564,6 +577,9 @@ displace:
 			switch (b.getBiome()) {
 				case OCEAN:
 				case BEACH:
+				case COLD_BEACH:
+				case STONE_BEACH:
+				case MUSHROOM_SHORE:
 				case DESERT:
 				case DESERT_HILLS:
 				case FROZEN_OCEAN:
