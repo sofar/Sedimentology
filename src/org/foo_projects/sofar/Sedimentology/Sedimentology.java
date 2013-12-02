@@ -141,6 +141,8 @@ public final class Sedimentology extends JavaPlugin {
 				case PUMPKIN:
 				case VINE:
 				case SUGAR_CANE:
+				case SNOW:
+				case SNOW_BLOCK:
 					yy--;
 					if (yy == 0)
 						return yy;
@@ -446,6 +448,8 @@ displace:
 				case PUMPKIN:
 				case VINE:
 				case SUGAR_CANE:
+				case SNOW:
+				case SNOW_BLOCK:
 					/* play a sound at the deposition area */
 					Sound snd;
 
