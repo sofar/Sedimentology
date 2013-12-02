@@ -790,8 +790,6 @@ displace:
 			worldStringList.add(worldName);
 			getConfig().set("worlds", worldStringList);
 			saveConfig();
-		} else {
-			getLogger().info("Already configured enable for this world?!");
 		}
 
 		sedWorld s = new sedWorld();
