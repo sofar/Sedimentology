@@ -269,8 +269,16 @@ public final class Sedimentology extends JavaPlugin {
 
 		/* lower overall chance due to lack of water */
 		stormfactor = 0.1;
-		if (world.hasStorm())
-			stormfactor = 1.0;
+		if (world.hasStorm()) {
+			switch (b.getBiome()) {
+				case DESERT:
+				case DESERT_HILLS:
+					break;
+				default:
+					stormfactor = 1.0;
+					break;
+			}
+		}
 
 		if ((!underwater) && (rnd.nextDouble() > stormfactor)) {
 			stat_ignored_storm++;
