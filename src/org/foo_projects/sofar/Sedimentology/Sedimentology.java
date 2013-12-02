@@ -75,6 +75,7 @@ public final class Sedimentology extends JavaPlugin {
 	private long stat_ignored_hardness;
 	private int x, y, z;
 	private long conf_blocks = 10;
+	private boolean conf_protect = true;
 	private boolean have_factions = false;
 	private boolean have_towny = false;
 
@@ -152,8 +153,12 @@ public final class Sedimentology extends JavaPlugin {
 			}
 		}
 	}
-	
+
+	/* determine if a block is protected */
 	private boolean isProtected(World world, int xx, int yy, int zz) {
+		if (!conf_protect)
+			return false;
+
 		if (have_factions) {
 			Faction faction = BoardColls.get().getFactionAt(PS.valueOf(new Location(world, xx, yy, zz)));
 			if (!faction.isNone())
@@ -635,6 +640,7 @@ displace:
 					"/sedimentology stats - display statistics\n" +
 					"/sedimentology list - display enabled worlds\n" +
 					"/sedimentology blocks <int> - sed number of block attempts per cycle\n" +
+					"/sedimentology protect <bool> - use Factions or Towny protection\n" +
 					"/sedimentology enable <world> - enable for world\n" +
 					"/sedimentology disable <world> - enable for world";
 
@@ -647,6 +653,29 @@ displace:
 							saveConfig();
 						}
 						msg = "number of blocks set to " + conf_blocks;
+						break;
+					case "protect":
+						if (split.length == 2) {
+							switch (split[1].toLowerCase()) {
+								case "true":
+								case "on":
+								case "yes":
+								case "1":
+									conf_protect = true;
+									break;
+								case "false":
+								case "off":
+								case "no":
+								case "0":
+									conf_protect = false;
+									break;
+								default:
+									break;
+							}
+							getConfig().set("protect", conf_protect);
+							saveConfig();
+						}
+						msg = "protection is set to " + (conf_protect ? "true" : "false");
 						break;
 					case "list":
 						msg = "plugin enabled for worlds:\n";
@@ -677,10 +706,10 @@ displace:
 					case "stats":
 						World world = org.bukkit.Bukkit.getWorld("world");
 						Chunk ChunkList[] = world.getLoadedChunks();
-						msg = String.format("blocks per cycle: %d\n" +
+						msg = String.format("blocks: %d protect: %s\n" +
 									"considered %d, displaced %d, degraded %d blocks in %d chunks %d errors\nlast one at %d %d %d\n" +
 									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, sand %d, hardness %d, protected %d",
-									conf_blocks,
+									conf_blocks, conf_protect ? "true" : "false",
 									stat_considered, stat_displaced, stat_degraded, ChunkList.length, stat_errors,
 									x, y, z,
 									stat_ignored_edge, stat_ignored_type, stat_ignored_storm, stat_ignored_vegetation,
@@ -888,6 +917,7 @@ displace:
 		saveDefaultConfig();
 
 		conf_blocks = getConfig().getInt("blocks");
+		conf_protect = getConfig().getBoolean("protect");
 
 		List<String> worldStringList = getConfig().getStringList("worlds");
 

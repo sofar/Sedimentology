@@ -1,3 +1,4 @@
 blocks: 10
+protect: true
 worlds:
 - world
