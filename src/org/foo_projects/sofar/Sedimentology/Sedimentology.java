@@ -296,6 +296,17 @@ waterloop:
 			stat_ignored_water++;
 			return;
 		}
+		
+		/* slow down when deeper under the sealevel */
+		if (underwater) {
+			if (y < world.getSeaLevel()) {
+				/* exponentially slower with depth. 100% at 1 depth, 50% at 2, 25% at 3 etc... */
+				if (rnd.nextDouble() > 2.0 * Math.pow(0.5, world.getSeaLevel() - y)) {
+					stat_ignored_water++;
+					return;
+				}
+			}
+		}
 
 		// vegetation slows down displacement
 		vegetationfactor = 1.0;
