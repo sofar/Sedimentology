@@ -17,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -30,6 +31,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.massivecraft.factions.entity.BoardColls;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.mcore.ps.PS;
+
+import com.palmergames.bukkit.towny.Towny;
+import com.palmergames.bukkit.towny.object.TownyUniverse;
 
 /*
  * Sedimentology concepts
@@ -72,6 +76,9 @@ public final class Sedimentology extends JavaPlugin {
 	private int x, y, z;
 	private long conf_blocks = 10;
 	private boolean have_factions = false;
+	private boolean have_towny = false;
+
+	private Object towny_universe = null;
 
 	public static final List<String> defaultWorldList = Collections.unmodifiableList(Arrays.asList("world"));
 
@@ -150,6 +157,11 @@ public final class Sedimentology extends JavaPlugin {
 			if (!faction.isNone())
 				return true;
 		}
+		if (have_towny) {
+			if (((TownyUniverse)towny_universe).getTownBlock(new Location(world, xx, yy, zz)) != null)
+				return true;
+		}
+
 		return false;
 	}
 
@@ -861,7 +873,15 @@ displace:
 		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Factions"))
 			have_factions = true;
 		getLogger().info("Factions support is " + (have_factions ? "enabled" : "disabled"));
-		
+		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Towny")) {
+			Plugin p = org.bukkit.Bukkit.getPluginManager().getPlugin("Towny");
+			if (p != null) {
+				towny_universe = ((Towny)(p)).getTownyUniverse();
+				have_towny = true;
+			}
+		}
+		getLogger().info("Towny support is " + (have_towny ? "enabled" : "disabled"));
+
 		/* even handler takes care of updating it from there */
 		getServer().getPluginManager().registerEvents(new SedimentologyListener(), this);
 
