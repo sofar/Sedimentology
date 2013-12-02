@@ -182,6 +182,7 @@ public final class Sedimentology extends JavaPlugin {
 		boolean underwater = false;
 		boolean undermovingwater = false;
 		boolean targetunderwater = false;
+		boolean undersnow = false;
 
 		int bx = (int)(Math.round(rnd.nextDouble() * 16));
 		int bz = (int)(Math.round(rnd.nextDouble() * 16));
@@ -208,7 +209,12 @@ public final class Sedimentology extends JavaPlugin {
 				underwater = true;
 				y = findDepositLocation(world, x, y, z) - 1;
 				break;
-			//FIXME: start handling ice/snow from here
+			//FIXME: start handling ice from here
+			case SNOW:
+			case SNOW_BLOCK:
+				undersnow = true;
+				y = findDepositLocation(world, x, y, z) - 1;
+				break;
 			default:
 				break;
 		}
@@ -318,7 +324,15 @@ waterloop:
 			stat_ignored_water++;
 			return;
 		}
-		
+
+		/* a snow cover slows down things a bit */
+		if (undersnow) {
+			if (rnd.nextDouble() > 0.25) {
+				stat_ignored_water++;
+				return;
+			}
+		}
+
 		/* slow down when deeper under the sealevel */
 		if (underwater) {
 			if (y < world.getSeaLevel()) {
