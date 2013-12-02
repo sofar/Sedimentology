@@ -240,7 +240,7 @@ public final class Sedimentology extends JavaPlugin {
 			case DIRT:
 			case GRASS:
 				break;
-			case SAND:
+			case SAND: /* this covers red sand */
 				/*
 				 * breaking sand into clay is hard, this also prevents all
 				 * sand from turning into clay
@@ -254,10 +254,9 @@ public final class Sedimentology extends JavaPlugin {
 			case CLAY:
 				resistance = 0.3;
 				break;
+			case HARD_CLAY:
+			case STAINED_CLAY:
 			case SANDSTONE:
-				hardness = 0.05;
-				resistance = 0.05;
-				break;
 			case COBBLESTONE:
 				hardness = 0.05;
 				resistance = 0.05;
@@ -528,6 +527,8 @@ displace:
 						case GRAVEL:
 							snd = Sound.DIG_GRAVEL;
 							break;
+						case HARD_CLAY:
+						case STAINED_CLAY:
 						case COBBLESTONE:
 						case STONE:
 						case COAL_ORE:
@@ -618,6 +619,8 @@ displace:
 				case CLAY:
 					/* we can displace clay, but not degrade */
 					return;
+				case HARD_CLAY:
+				case STAINED_CLAY:
 				case SANDSTONE:
 				case COBBLESTONE:
 					b.setType(Material.GRAVEL);
