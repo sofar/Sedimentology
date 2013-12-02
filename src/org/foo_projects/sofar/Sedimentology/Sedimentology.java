@@ -142,6 +142,8 @@ public final class Sedimentology extends JavaPlugin {
 				case PUMPKIN:
 				case VINE:
 				case SUGAR_CANE:
+				case DOUBLE_PLANT:
+				case LEAVES_2:
 				case SNOW:
 				case SNOW_BLOCK:
 					yy--;
@@ -385,6 +387,9 @@ waterloop:
 						case PUMPKIN:
 						case VINE:
 						case SUGAR_CANE:
+						case DOUBLE_PLANT:
+						case LEAVES_2:
+						case LOG_2:
 							/* distance to vegetation: 3.0 (far) to 0.3 (near) */
 							double d = (Math.abs(xx - x) + Math.abs(yy - y) + Math.abs(zz -z)) / 3.0;
 							/* somewhat complex calculation here to make the chance
@@ -481,6 +486,8 @@ displace:
 				case SUGAR_CANE:
 				case SNOW:
 				case SNOW_BLOCK:
+				case DOUBLE_PLANT:
+				case LEAVES_2:
 					/* play a sound at the deposition area */
 					Sound snd;
 
