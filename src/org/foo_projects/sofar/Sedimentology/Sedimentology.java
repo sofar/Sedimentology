@@ -239,6 +239,17 @@ public final class Sedimentology extends JavaPlugin {
 				hardness = 0.01;
 				resistance = 0.01;
 				break;
+			/* ores don't break down much at all, but they are displaced as easy stone */
+			case COAL_ORE:
+			case IRON_ORE:
+			case LAPIS_ORE:
+			case EMERALD_ORE:
+			case GOLD_ORE:
+			case DIAMOND_ORE:
+			case REDSTONE_ORE:
+				hardness = 0.0001;
+				resistance = 0.01;
+				break;
 			default:
 				stat_ignored_type++;
 				return;
@@ -446,6 +457,13 @@ displace:
 							break;
 						case COBBLESTONE:
 						case STONE:
+						case COAL_ORE:
+						case IRON_ORE:
+						case LAPIS_ORE:
+						case EMERALD_ORE:
+						case GOLD_ORE:
+						case DIAMOND_ORE:
+						case REDSTONE_ORE:
 							snd = Sound.DIG_STONE;
 							break;
 						default:
@@ -529,6 +547,15 @@ displace:
 					break;
 				case STONE:
 					b.setType(Material.COBBLESTONE);
+					break;
+				case COAL_ORE:
+				case IRON_ORE:
+				case LAPIS_ORE:
+				case EMERALD_ORE:
+				case GOLD_ORE:
+				case DIAMOND_ORE:
+				case REDSTONE_ORE:
+					b.setType(Material.STONE);
 					break;
 				default:
 					stat_errors++;
