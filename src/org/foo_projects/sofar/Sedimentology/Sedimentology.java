@@ -499,7 +499,8 @@ displace:
 							break;
 					}
 
-					Material m = b.getType();
+					Material mat = b.getType();
+					byte dat = b.getData();
 					/* fix water issues at sealevel */
 					if ((y <= world.getSeaLevel()) &&
 							((world.getBlockAt(x - 1, y, z).getType() == Material.STATIONARY_WATER) ||
@@ -509,7 +510,8 @@ displace:
 						b.setType(Material.STATIONARY_WATER);
 					else
 						b.setType(Material.AIR);
-					t.setType(m);
+					t.setType(mat);
+					t.setData(dat);
 
 					if (targetunderwater && !underwater) {
 						snd = Sound.SPLASH;
