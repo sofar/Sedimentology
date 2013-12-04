@@ -506,7 +506,11 @@ displace:
 							((world.getBlockAt(x - 1, y, z).getType() == Material.STATIONARY_WATER) ||
 								(world.getBlockAt(x + 1, y, z).getType() == Material.STATIONARY_WATER) ||
 								(world.getBlockAt(x, y, z - 1).getType() == Material.STATIONARY_WATER) ||
-								(world.getBlockAt(x, y, z + 1).getType() == Material.STATIONARY_WATER)))
+								(world.getBlockAt(x, y, z + 1).getType() == Material.STATIONARY_WATER)) &&
+							((world.getBlockAt(x - 1, y, z).getType() != Material.AIR) &&
+								(world.getBlockAt(x + 1, y, z).getType() != Material.AIR) &&
+								(world.getBlockAt(x, y, z - 1).getType() != Material.AIR) &&
+								(world.getBlockAt(x, y, z + 1).getType() != Material.AIR)))
 						b.setType(Material.STATIONARY_WATER);
 					else
 						b.setType(Material.AIR);
