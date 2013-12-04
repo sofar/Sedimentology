@@ -71,6 +71,7 @@ public final class Sedimentology extends JavaPlugin {
 	private long stat_ignored_vegetation;
 	private long stat_ignored_resistance;
 	private long stat_ignored_water;
+	private long stat_ignored_wave;
 	private long stat_ignored_sand;
 	private long stat_ignored_hardness;
 	private long stat_ignored_lockedin;
@@ -178,7 +179,6 @@ public final class Sedimentology extends JavaPlugin {
 	}
 
 	public void sed(sedWorld sedworld) {
-		stat_considered++;
 		World world = sedworld.world;
 		Chunk ChunkList[] = world.getLoadedChunks();
 		Chunk c = ChunkList[(int) Math.abs(rnd.nextDouble() * ChunkList.length)];
@@ -217,6 +217,8 @@ public final class Sedimentology extends JavaPlugin {
 		boolean undermovingwater = false;
 		boolean targetunderwater = false;
 		boolean undersnow = false;
+
+		stat_considered++;
 
 		/* find highest block, even if underwater */
 		y = world.getHighestBlockYAt(x, z) - 1;
@@ -368,7 +370,7 @@ waterloop:
 			if (y < world.getSeaLevel()) {
 				/* exponentially slower with depth. 100% at 1 depth, 50% at 2, 25% at 3 etc... */
 				if (rnd.nextDouble() > 2.0 * Math.pow(0.5, world.getSeaLevel() - y)) {
-					stat_ignored_water++;
+					stat_ignored_wave++;
 					return;
 				}
 			}
@@ -431,10 +433,10 @@ displace:
 			/* our block must be able to move sideways, otherwise it could leave
 			 * strange gaps. So check if all 4 sides horizontally are solid
 			 */
-			if (!(world.getBlockAt(x + 1, y, z).isEmpty() ||
-					world.getBlockAt(x - 1, y, z).isEmpty() ||
-					world.getBlockAt(x, y, z + 1).isEmpty() ||
-					world.getBlockAt(x, y, z - 1).isEmpty())) {
+			if (!(world.getBlockAt(x + 1, y, z).isEmpty() || world.getBlockAt(x + 1, y, z).isLiquid() ||
+					world.getBlockAt(x - 1, y, z).isEmpty() || world.getBlockAt(x - 1, y, z).isLiquid() ||
+					world.getBlockAt(x, y, z + 1).isEmpty() || world.getBlockAt(x, y, z + 1).isLiquid() ||
+					world.getBlockAt(x, y, z - 1).isEmpty() || world.getBlockAt(x, y, z - 1).isLiquid())) {
 				stat_ignored_lockedin++;
 				return;
 			}
@@ -762,13 +764,13 @@ displace:
 						Chunk ChunkList[] = world.getLoadedChunks();
 						msg = String.format("blocks: %d protect: %s\n" +
 									"considered %d, displaced %d, degraded %d blocks in %d chunks %d errors\nlast one at %d %d %d\n" +
-									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, sand %d, hardness %d," +
+									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, wave %d, sand %d, hardness %d," +
 									"protected %d, locked in %d",
 									conf_blocks, conf_protect ? "true" : "false",
 									stat_considered, stat_displaced, stat_degraded, ChunkList.length, stat_errors,
 									stat_lastx, stat_lasty, stat_lastz,
 									stat_ignored_edge, stat_ignored_type, stat_ignored_storm, stat_ignored_vegetation,
-									stat_ignored_resistance, stat_ignored_water, stat_ignored_sand, stat_ignored_hardness,
+									stat_ignored_resistance, stat_ignored_water, stat_ignored_wave, stat_ignored_sand, stat_ignored_hardness,
 									stat_protected, stat_ignored_lockedin);
 						break;
 					case "test":
