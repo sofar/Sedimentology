@@ -414,10 +414,6 @@ waterloop:
 		/* displace block? */
 displace:
 		if (true) {
-			//FIXME displace should factor in elevation, but it doesn't git well
-			// in our implementation. Perhaps we can modify hardness and increase it
-			// for high elevations
-
 			int step, steps;
 
 			/* find the most suitable target location to move this block to */
