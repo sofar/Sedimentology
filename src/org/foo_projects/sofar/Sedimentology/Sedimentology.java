@@ -73,7 +73,10 @@ public final class Sedimentology extends JavaPlugin {
 	private long stat_ignored_water;
 	private long stat_ignored_sand;
 	private long stat_ignored_hardness;
-	private int x, y, z;
+	private long stat_ignored_lockedin;
+	private int stat_lastx;
+	private int stat_lasty;
+	private int stat_lastz;
 	private long conf_blocks = 10;
 	private boolean conf_protect = true;
 	private boolean have_factions = false;
@@ -180,17 +183,6 @@ public final class Sedimentology extends JavaPlugin {
 		Chunk ChunkList[] = world.getLoadedChunks();
 		Chunk c = ChunkList[(int) Math.abs(rnd.nextDouble() * ChunkList.length)];
 
-		double hardness;
-		double resistance;
-		double waterfactor;
-		double vegetationfactor;
-		double stormfactor;
-
-		boolean underwater = false;
-		boolean undermovingwater = false;
-		boolean targetunderwater = false;
-		boolean undersnow = false;
-
 		int bx = (int)(Math.round(rnd.nextDouble() * 16));
 		int bz = (int)(Math.round(rnd.nextDouble() * 16));
 
@@ -204,8 +196,27 @@ public final class Sedimentology extends JavaPlugin {
 			}
 		}
 
-		x = bx + (c.getX() * 16);
-		z = bz + (c.getZ() * 16);
+		int x = bx + (c.getX() * 16);
+		int z = bz + (c.getZ() * 16);
+
+		sedBlock(sedworld, x, z);
+	}
+
+	public void sedBlock(sedWorld sedworld, int x, int z) {
+		World world = sedworld.world;
+
+		int y;
+
+		double hardness;
+		double resistance;
+		double waterfactor;
+		double vegetationfactor;
+		double stormfactor;
+
+		boolean underwater = false;
+		boolean undermovingwater = false;
+		boolean targetunderwater = false;
+		boolean undersnow = false;
 
 		/* find highest block, even if underwater */
 		y = world.getHighestBlockYAt(x, z) - 1;
@@ -230,6 +241,7 @@ public final class Sedimentology extends JavaPlugin {
 			stat_protected++;
 			return;
 		}
+
 		Block b = world.getBlockAt(x, y, z);
 
 		/* filter out blocks we don't erode right now */
@@ -415,6 +427,17 @@ waterloop:
 displace:
 		if (true) {
 			int step, steps;
+
+			/* our block must be able to move sideways, otherwise it could leave
+			 * strange gaps. So check if all 4 sides horizontally are solid
+			 */
+			if (!(world.getBlockAt(x + 1, y, z).isEmpty() ||
+					world.getBlockAt(x - 1, y, z).isEmpty() ||
+					world.getBlockAt(x, y, z + 1).isEmpty() ||
+					world.getBlockAt(x, y, z - 1).isEmpty())) {
+				stat_ignored_lockedin++;
+				return;
+			}
 
 			/* find the most suitable target location to move this block to */
 			if ((b.getType() == Material.SAND) || (underwater))
@@ -648,6 +671,9 @@ displace:
 			return;
 		}
 
+		stat_lastx = x;
+		stat_lasty = y;
+		stat_lastz = z;
 		stat_degraded++;
 	};
 
@@ -736,13 +762,47 @@ displace:
 						Chunk ChunkList[] = world.getLoadedChunks();
 						msg = String.format("blocks: %d protect: %s\n" +
 									"considered %d, displaced %d, degraded %d blocks in %d chunks %d errors\nlast one at %d %d %d\n" +
-									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, sand %d, hardness %d, protected %d",
+									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, sand %d, hardness %d," +
+									"protected %d, locked in %d",
 									conf_blocks, conf_protect ? "true" : "false",
 									stat_considered, stat_displaced, stat_degraded, ChunkList.length, stat_errors,
-									x, y, z,
+									stat_lastx, stat_lasty, stat_lastz,
 									stat_ignored_edge, stat_ignored_type, stat_ignored_storm, stat_ignored_vegetation,
 									stat_ignored_resistance, stat_ignored_water, stat_ignored_sand, stat_ignored_hardness,
-									stat_protected);
+									stat_protected, stat_ignored_lockedin);
+						break;
+					case "test":
+						if (split.length != 7) {
+							msg = "test requires 6 parameters: world x1 z1 x2 z2 blocks";
+							break;
+						};
+						for (sedWorld sw: sedWorldList) {
+							if (sw.world.getName().equals(split[1])) {
+								int x1 = Integer.parseInt(split[2]);
+								int z1 = Integer.parseInt(split[3]);
+								int x2 = Integer.parseInt(split[4]);
+								int z2 = Integer.parseInt(split[5]);
+								if (x1 > x2) {
+									int t = x1;
+									x1 = x2;
+									x2 = t;
+								}
+								if (z1 > z2) {
+									int t = z1;
+									z1 = z2;
+									z2 = t;
+								}
+								for (long i = 0; i < Long.parseLong(split[6]); i++)
+									for (int x = x1; x <= x2; x++)
+										for (int z = z1; z <= z2; z++)
+											sedBlock(sw, x, z);
+								msg = "test cycle finished";
+								break;
+							} else {
+								msg = "Invalid world name - world must be enabled already";
+								break;
+							}
+						}
 						break;
 					case "help":
 					default:
