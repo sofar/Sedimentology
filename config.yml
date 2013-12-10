@@ -1,4 +1,5 @@
 blocks: 10
+ticks: 1
 protect: true
 worlds:
 - world
