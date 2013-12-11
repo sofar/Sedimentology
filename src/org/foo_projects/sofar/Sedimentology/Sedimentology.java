@@ -388,11 +388,23 @@ public final class Sedimentology extends JavaPlugin {
 		}
 
 		@SuppressWarnings("deprecation")
-		private void snow(int x, int y, int z) {
+		private void snow(int x, int y, int z, int base) {
 			byte snowcount = 0;
 			int snowheight = 0;
 
 			Block block = world.getBlockAt(x, y, z);
+
+			/* snow stack? */
+			if (block.getRelative(BlockFace.UP).getType() == Material.SNOW) {
+				long stackheight = base - y + 1;
+				/* don't grow higher than 2 in ice biomes
+				 * unless up high, then grown 1 block every 16 elevation
+				 */
+				long finalmax = Math.max((base - 64) / 16, Math.round((0.25 - block.getTemperature()) / 0.9));
+				if (stackheight < finalmax)
+					snow(x, y + 1, z, base);
+				return;
+			}
 
 			/* cap snow depth at a certain level by not growing snow too high */
 
@@ -419,8 +431,8 @@ stack:
 					above.setType(Material.SNOW);
 					above.setData((byte)0);
 				} else {
-					int avg = ((snowheight / snowcount));
-					if (((y * 7) + block.getData()) < avg + 1)
+					int avg = (snowheight / snowcount);
+					if (((y * 7) + block.getData()) < avg + 4)
 						block.setData((byte)Math.min((int)block.getData() + 1, (int)7));
 				}
 			} else if (block.getLightLevel() >= 12) {
@@ -456,7 +468,7 @@ stack:
 			y = world.getHighestBlockYAt(x, z);
 			switch (world.getBlockAt(x, y, z).getType()) {
 				case SNOW:
-					snow(x, y, z);
+					snow(x, y, z, y);
 					undersnow = true;
 					break;
 				default:
@@ -1059,6 +1071,8 @@ displace:
 			} else {
 				Player player = (Player) sender;
 				player.sendMessage(msg);
+				double temp = player.getLocation().getBlock().getTemperature();
+				player.sendMessage("your temp is: " + temp);
 			}
 			return true;
 		}
