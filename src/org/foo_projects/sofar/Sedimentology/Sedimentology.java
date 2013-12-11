@@ -335,6 +335,10 @@ public final class Sedimentology extends JavaPlugin {
 		public Biome getBiome() {
 			return block.getBiome();
 		}
+
+		public Biome getBiome() {
+			return block.getBiome();
+		}
 	}
 
 	private class SedWorld {
@@ -386,6 +390,52 @@ public final class Sedimentology extends JavaPlugin {
 			sedBlock(x, z);
 		}
 
+		@SuppressWarnings("deprecation")
+		private void snow(int x, int y, int z) {
+			byte snowcount = 0;
+			int snowheight = 0;
+
+			Block block = world.getBlockAt(x, y, z);
+
+			/* cap snow depth at a certain level by not growing snow too high */
+
+			/* grow snow depth */
+			for (int xx = x - 1; xx <= x + 1; xx++) {
+				for (int zz = z - 1; zz <= z + 1; zz++) {
+stack:
+					for (int yy = y - 1; yy <= y + 1; yy++) {
+						if ((xx == x) && (zz == z))
+							continue;
+						if (world.getBlockAt(xx, yy, zz).getType() == Material.SNOW) {
+							snowcount++;
+							snowheight += world.getBlockAt(xx, yy, zz).getData() + (yy * 7);
+							break stack;
+						}
+					}
+				}
+			}
+
+			if (world.hasStorm() && (block.getTemperature() < 0.25) && (snowcount > 0)) {
+				/* grow */
+				if (block.getData() == 7) {
+					Block above = block.getRelative(BlockFace.UP);
+					above.setType(Material.SNOW);
+					above.setData((byte)0);
+				} else {
+					int avg = ((snowheight / snowcount));
+					if (((y * 7) + block.getData()) < avg + 1)
+						block.setData((byte)Math.min((int)block.getData() + 1, (int)7));
+				}
+			} else if (block.getLightLevel() >= 12) {
+				/* melt */
+				if (block.getData() > 0) {
+					block.setData((byte)(block.getData() - 1));
+				} else {
+					block.setType(Material.AIR);
+				}
+			}
+		}
+
 		public void sedBlock(int x, int z) {
 			World world = this.world;
 			SedDice dice = new SedDice(rnd);
@@ -405,6 +455,17 @@ public final class Sedimentology extends JavaPlugin {
 
 			stat_considered++;
 
+			/* handle snow separately first */
+			y = world.getHighestBlockYAt(x, z);
+			switch (world.getBlockAt(x, y, z).getType()) {
+				case SNOW:
+					snow(x, y, z);
+					undersnow = true;
+					break;
+				default:
+					break;
+			}
+
 			/* find highest block, even if underwater */
 			y = world.getHighestBlockYAt(x, z) - 1;
 			switch (world.getBlockAt(x, y, z).getType()) {
@@ -414,10 +475,7 @@ public final class Sedimentology extends JavaPlugin {
 					underwater = true;
 					y = findDepositLocation(x, y, z) - 1;
 					break;
-				//FIXME: start handling ice from here
 				case SNOW:
-				case SNOW_BLOCK:
-					undersnow = true;
 					y = findDepositLocation(x, y, z) - 1;
 					break;
 				default:
@@ -880,7 +938,6 @@ displace:
 				case DOUBLE_PLANT:
 				case LEAVES_2:
 				case SNOW:
-				case SNOW_BLOCK:
 					return true;
 				default:
 					return false;
