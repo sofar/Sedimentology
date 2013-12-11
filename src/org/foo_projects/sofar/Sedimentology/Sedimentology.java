@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Map;
 
+import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -317,6 +318,10 @@ public final class Sedimentology extends JavaPlugin {
 		public void setData(byte data) {
 			block.setData(data);
 		}
+
+		public Biome getBiome() {
+			return block.getBiome();
+		}
 	}
 
 	private class SedWorld {
@@ -438,6 +443,7 @@ public final class Sedimentology extends JavaPlugin {
 				case HARD_CLAY:
 				case STAINED_CLAY:
 				case SANDSTONE:
+				case MOSSY_COBBLESTONE:
 				case COBBLESTONE:
 					hardness = 0.05;
 					resistance = 0.05;
@@ -685,6 +691,7 @@ displace:
 							b.setType(Material.STATIONARY_WATER);
 						else
 							b.setType(Material.AIR);
+						b.setData((byte)0);
 						t.setType(mat);
 						t.setData(dat);
 
@@ -776,6 +783,7 @@ displace:
 			switch (b.getType()) {
 				case DIRT:
 					b.setType(Material.SAND);
+					b.setData((byte)0);
 					break;
 				case SOIL:
 				case GRASS:
@@ -783,6 +791,7 @@ displace:
 					break;
 				case SAND:
 					b.setType(Material.CLAY);
+					b.setData((byte)0);
 					break;
 				case GRAVEL:
 					b.setType(Material.DIRT);
@@ -793,12 +802,23 @@ displace:
 				case HARD_CLAY:
 				case STAINED_CLAY:
 				case SANDSTONE:
+				case MOSSY_COBBLESTONE:
 				case COBBLESTONE:
 					b.setType(Material.GRAVEL);
+					b.setData((byte)0);
 					break;
 				case STONE:
-					b.setType(Material.COBBLESTONE);
-					break;
+					switch (b.getBiome()) {
+						case MEGA_TAIGA:
+						case MEGA_TAIGA_HILLS:
+						case MEGA_SPRUCE_TAIGA:
+						case MEGA_SPRUCE_TAIGA_HILLS:
+							b.setType(Material.MOSSY_COBBLESTONE);
+							break;
+						default:
+							b.setType(Material.COBBLESTONE);
+							break;
+					}
 				case COAL_ORE:
 				case IRON_ORE:
 				case LAPIS_ORE:
