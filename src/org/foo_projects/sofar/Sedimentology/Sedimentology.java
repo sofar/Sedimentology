@@ -336,9 +336,6 @@ public final class Sedimentology extends JavaPlugin {
 			return block.getBiome();
 		}
 
-		public Biome getBiome() {
-			return block.getBiome();
-		}
 	}
 
 	private class SedWorld {
