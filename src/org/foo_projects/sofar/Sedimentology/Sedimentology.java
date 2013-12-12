@@ -396,12 +396,12 @@ public final class Sedimentology extends JavaPlugin {
 
 			/* snow stack? */
 			if (block.getRelative(BlockFace.UP).getType() == Material.SNOW) {
-				long stackheight = base - y + 1;
+				long stackheight = y - base + 1;
 				/* don't grow higher than 2 in ice biomes
 				 * unless up high, then grown 1 block every 16 elevation
 				 */
 				long finalmax = Math.max((base - 64) / 16, Math.round((0.25 - block.getTemperature()) / 0.9));
-				if (stackheight < finalmax)
+				if (stackheight <= finalmax)
 					snow(x, y + 1, z, base);
 				return;
 			}
@@ -412,7 +412,7 @@ public final class Sedimentology extends JavaPlugin {
 			for (int xx = x - 1; xx <= x + 1; xx++) {
 				for (int zz = z - 1; zz <= z + 1; zz++) {
 stack:
-					for (int yy = y - 1; yy <= y + 1; yy++) {
+					for (int yy = y - 2; yy <= y + 2; yy++) {
 						if ((xx == x) && (zz == z))
 							continue;
 						if (world.getBlockAt(xx, yy, zz).getType() == Material.SNOW) {
@@ -425,18 +425,21 @@ stack:
 			}
 
 			if (world.hasStorm() && (block.getTemperature() < 0.25) && (snowcount > 0)) {
-				/* grow */
-				if (block.getData() == 7) {
+				/* grow, but must be completely surrounded by snow blocks */
+				if ((block.getData() == 7) && (snowcount == 8)) {
 					Block above = block.getRelative(BlockFace.UP);
 					above.setType(Material.SNOW);
 					above.setData((byte)0);
 				} else {
+					/* if neighbours do not have snow, don't stack so high */
 					int avg = (snowheight / snowcount);
-					if (((y * 7) + block.getData()) < avg + 4)
-						block.setData((byte)Math.min((int)block.getData() + 1, (int)7));
+					if ((((y - 1) * 7) + block.getData()) < avg + 2)
+						block.setData((byte)Math.min((int)block.getData() + 1, ((snowcount > 0) ? snowcount - 1 : 0)));
 				}
 			} else if (block.getLightLevel() >= 12) {
-				/* melt */
+				/* melt is slower than snowfall */
+				if (Math.random() > 0.5)
+					return;
 				if (block.getData() > 0) {
 					block.setData((byte)(block.getData() - 1));
 				} else {
@@ -1071,6 +1074,7 @@ displace:
 			} else {
 				Player player = (Player) sender;
 				player.sendMessage(msg);
+				//FIXME remove from release code
 				double temp = player.getLocation().getBlock().getTemperature();
 				player.sendMessage("your temp is: " + temp);
 			}
