@@ -54,9 +54,8 @@ erosion process.
 
   /sedimentology protect <boolean>
 
-Enable or disable protection if Factions or Towny is present. If they
-are not, all land is unprotected. By default, if Factions or Towny
-is present there will be no modifications made to claimed blocks.
+This option was removed in Sedimentology-6. Instead, the flag can be
+specified from the config.yml file instead.
 
   /sedimentology list
 
@@ -72,6 +71,42 @@ Enable or disable the effects of this plugin for a particular world.
 Displays a help message describing the commands available.
 
 All these plugins require the "sedimentology" permission.
+
+~~~~
+
+config.yml
+
+Sedimentology uses the standard config.yml method to store
+settings. The following fields are known by the plugin, and may be
+overwritten if you change settings in the game (default settings
+shown here):
+
+blocks: 10
+ticks: 1
+protect: true
+worlds:
+- world
+
+- blocks:
+    modifies the amount of attempts per world that the plugin
+makes each interval to modify the world. The higher the number,
+the more blocks will move or decay. If 0, the plugin is effectively
+disabled. High numbers can cause lag and a high server load. Numbers
+above 500 are not advised for deployment even with high end servers.
+
+- ticks:
+    modifies the interval, in minecraft ticks, that the plugin
+will run as. There are 20 minecraft ticks in a second. Higher values
+mean more time in between plugin doing things.
+
+- protect:
+    Enable Factions or Towny protection, if present. If Factions
+or Towny are not present, has no effect - disabling all protection.
+
+- worlds:
+    A list containing worlds that should be modified by the plugin.
+Worlds should be specified with a leading hyphen, one per line. Use
+the command if unsure about the format instead.
 
 ~~~~
 
