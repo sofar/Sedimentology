@@ -34,6 +34,9 @@ import com.massivecraft.mcore.ps.PS;
 import com.palmergames.bukkit.towny.Towny;
 import com.palmergames.bukkit.towny.object.TownyUniverse;
 
+import com.sk89q.worldguard.bukkit.WGBukkit;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+
 /*
  * Sedimentology concepts
  *
@@ -89,6 +92,7 @@ public final class Sedimentology extends JavaPlugin {
 
 	private boolean have_factions = false;
 	private boolean have_towny = false;
+	private boolean have_worldguard = false;
 
 	private Object towny_universe = null;
 
@@ -296,6 +300,10 @@ public final class Sedimentology extends JavaPlugin {
 			if (have_towny) {
 				if (((TownyUniverse)towny_universe).getTownBlock(block.getLocation()) != null)
 					return true;
+			}
+			if (have_worldguard) {
+				ApplicableRegionSet set = WGBukkit.getRegionManager(block.getWorld()).getApplicableRegions(block.getLocation());
+				return (set.size() > 0);
 			}
 
 			return false;
@@ -1080,7 +1088,8 @@ displace:
 		/* Detect Factions */
 		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Factions"))
 			have_factions = true;
-		getLogger().info("Factions support is " + (have_factions ? "enabled" : "disabled"));
+
+		/* Towny */
 		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Towny")) {
 			Plugin p = org.bukkit.Bukkit.getPluginManager().getPlugin("Towny");
 			if (p != null) {
@@ -1088,7 +1097,17 @@ displace:
 				have_towny = true;
 			}
 		}
-		getLogger().info("Towny support is " + (have_towny ? "enabled" : "disabled"));
+
+		/* WorldGuard */
+		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("WorldGuard"))
+			have_worldguard = true;
+
+		getLogger().info("Protection plugins: " +
+						(have_factions ? "+" : "-") + "Factions, " +
+						(have_towny ? "+" : "-") + "Towny, " +
+						(have_worldguard ? "+" : "-") + "WorldGuard, "
+						);
+
 		conf_protect = getConfig().getBoolean("protect");
 		getLogger().info("protection is " + (conf_protect ? "on" : "off"));
 
