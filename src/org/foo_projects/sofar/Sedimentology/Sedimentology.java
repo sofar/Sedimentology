@@ -36,6 +36,7 @@ import com.palmergames.bukkit.towny.object.TownyUniverse;
 
 import com.sk89q.worldguard.bukkit.WGBukkit;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.managers.RegionManager;
 
 /*
  * Sedimentology concepts
@@ -302,7 +303,10 @@ public final class Sedimentology extends JavaPlugin {
 					return true;
 			}
 			if (have_worldguard) {
-				ApplicableRegionSet set = WGBukkit.getRegionManager(block.getWorld()).getApplicableRegions(block.getLocation());
+				RegionManager rm = WGBukkit.getRegionManager(block.getWorld());
+				if (rm == null)
+					return false;
+				ApplicableRegionSet set = rm.getApplicableRegions(block.getLocation());
 				return (set.size() > 0);
 			}
 
