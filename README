@@ -117,9 +117,9 @@ they are not installed. If they are present however, the plugin will
 stop making modifications to claimed blocks. This can be configured
 disabled with the /sedimentology protect command.
 
-While I tested Factions support thoroughly, I can't currently test
-Towny or WorldGuard integration, so feedback appreciated if you can
-test this for me, and the result is as expected.
+While I tested Factions and WorldGuard support thoroughly, I can't currently
+test Towny integration, so feedback appreciated if you can test this for me,
+and the result is as expected.
 
 Bugs / Code For bugs, tips, donations please feel free to contact me:
 

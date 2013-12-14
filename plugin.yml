@@ -1,6 +1,6 @@
 name: Sedimentology
 main: org.foo_projects.sofar.Sedimentology.Sedimentology
-version: 6
+version: 7
 softdepend: [Factions, Towny, WorldGuard]
 commands:
     sedimentology:
