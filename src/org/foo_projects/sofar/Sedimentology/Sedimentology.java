@@ -652,104 +652,81 @@ displace:
 				}
 
 				/* It's time to move it, move it. */
-				switch (t.getType()) {
-					case AIR:
-					case WATER:
-					case STATIONARY_WATER:
-					case LEAVES:
-					case CACTUS:
-					case SAPLING:
-					case LONG_GRASS:
-					case DEAD_BUSH:
-					case YELLOW_FLOWER:
-					case RED_ROSE:
-					case BROWN_MUSHROOM:
-					case RED_MUSHROOM:
-					case CROPS:
-					case MELON_STEM:
-					case PUMPKIN_STEM:
-					case MELON_BLOCK:
-					case PUMPKIN:
-					case VINE:
-					case SUGAR_CANE:
-					case SNOW:
-					case SNOW_BLOCK:
-					case DOUBLE_PLANT:
-					case LEAVES_2:
-						/* play a sound at the deposition area */
-						Sound snd;
+				if (isCrushable(t.block) || t.block.isLiquid() || t.block.isEmpty()) {
+					/* play a sound at the deposition area */
+					Sound snd;
 
-						switch (world.getBlockAt(tx, ty, z).getType()) {
-							case WATER:
-							case STATIONARY_WATER:
-								targetunderwater = true;
-								break;
-							default:
-								break;
+					switch (world.getBlockAt(tx, ty, z).getType()) {
+						case WATER:
+						case STATIONARY_WATER:
+							targetunderwater = true;
+							break;
+						default:
+							break;
+					}
+
+					Material mat = b.getType();
+					byte dat = b.getData();
+					/* fix water issues at sealevel */
+					if ((y <= world.getSeaLevel()) &&
+							((world.getBlockAt(x - 1, y, z).getType() == Material.STATIONARY_WATER) ||
+								(world.getBlockAt(x + 1, y, z).getType() == Material.STATIONARY_WATER) ||
+								(world.getBlockAt(x, y, z - 1).getType() == Material.STATIONARY_WATER) ||
+								(world.getBlockAt(x, y, z + 1).getType() == Material.STATIONARY_WATER)) &&
+							((world.getBlockAt(x - 1, y, z).getType() != Material.AIR) &&
+								(world.getBlockAt(x + 1, y, z).getType() != Material.AIR) &&
+								(world.getBlockAt(x, y, z - 1).getType() != Material.AIR) &&
+								(world.getBlockAt(x, y, z + 1).getType() != Material.AIR)))
+						b.setType(Material.STATIONARY_WATER);
+					else
+						b.setType(Material.AIR);
+					b.setData((byte)0);
+					t.setType(mat);
+					t.setData(dat);
+
+					if (targetunderwater && !underwater) {
+						snd = Sound.SPLASH;
+					} else if (y - ty > 2) {
+						snd = Sound.FALL_BIG;
+					} else {
+						switch(b.getType()) {
+						case CLAY:
+						case SAND:
+							snd = Sound.DIG_SAND;
+						case DIRT:
+						case GRASS:
+							snd = Sound.DIG_GRASS;
+							break;
+						case GRAVEL:
+							snd = Sound.DIG_GRAVEL;
+							break;
+						case HARD_CLAY:
+						case STAINED_CLAY:
+						case COBBLESTONE:
+						case STONE:
+						case COAL_ORE:
+						case IRON_ORE:
+						case LAPIS_ORE:
+						case EMERALD_ORE:
+						case GOLD_ORE:
+						case DIAMOND_ORE:
+						case REDSTONE_ORE:
+							snd = Sound.DIG_STONE;
+							break;
+						default:
+							snd = Sound.FALL_SMALL;
+							break;
 						}
+					}
+					world.playSound(new Location(world, tx, ty, tz), snd, 1, 1);
 
-						Material mat = b.getType();
-						byte dat = b.getData();
-						/* fix water issues at sealevel */
-						if ((y <= world.getSeaLevel()) &&
-								((world.getBlockAt(x - 1, y, z).getType() == Material.STATIONARY_WATER) ||
-									(world.getBlockAt(x + 1, y, z).getType() == Material.STATIONARY_WATER) ||
-									(world.getBlockAt(x, y, z - 1).getType() == Material.STATIONARY_WATER) ||
-									(world.getBlockAt(x, y, z + 1).getType() == Material.STATIONARY_WATER)) &&
-								((world.getBlockAt(x - 1, y, z).getType() != Material.AIR) &&
-									(world.getBlockAt(x + 1, y, z).getType() != Material.AIR) &&
-									(world.getBlockAt(x, y, z - 1).getType() != Material.AIR) &&
-									(world.getBlockAt(x, y, z + 1).getType() != Material.AIR)))
-							b.setType(Material.STATIONARY_WATER);
-						else
-							b.setType(Material.AIR);
-						b.setData((byte)0);
-						t.setType(mat);
-						t.setData(dat);
-
-						if (targetunderwater && !underwater) {
-							snd = Sound.SPLASH;
-						} else if (y - ty > 2) {
-							snd = Sound.FALL_BIG;
-						} else {
-							switch(b.getType()) {
-							case CLAY:
-							case SAND:
-								snd = Sound.DIG_SAND;
-							case DIRT:
-							case GRASS:
-								snd = Sound.DIG_GRASS;
-								break;
-							case GRAVEL:
-								snd = Sound.DIG_GRAVEL;
-								break;
-							case HARD_CLAY:
-							case STAINED_CLAY:
-							case COBBLESTONE:
-							case STONE:
-							case COAL_ORE:
-							case IRON_ORE:
-							case LAPIS_ORE:
-							case EMERALD_ORE:
-							case GOLD_ORE:
-							case DIAMOND_ORE:
-							case REDSTONE_ORE:
-								snd = Sound.DIG_STONE;
-								break;
-							default:
-								snd = Sound.FALL_SMALL;
-								break;
-							}
-						}
-						world.playSound(new Location(world, tx, ty, tz), snd, 1, 1);
-
-						stat_displaced++;
-						return;
-					default:
-						/* figure out how this happened */
-						stat_errors++;
-						getLogger().info("Attempted to move into a block of " + t.getType().name());
-						return;
+					stat_displaced++;
+					return;
+				} else {
+					/* figure out how this happened */
+					stat_errors++;
+					getLogger().info("Attempted to move into a block of " + t.getType().name());
+					return;
 				}
 			}
 
