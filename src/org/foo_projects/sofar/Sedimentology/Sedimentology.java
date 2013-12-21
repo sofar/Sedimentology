@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -721,6 +722,21 @@ displace:
 					world.playSound(new Location(world, tx, ty, tz), snd, 1, 1);
 
 					stat_displaced++;
+
+					/* fix waterfall stuff above sealevel */
+					if (b.block.getRelative(BlockFace.UP).isLiquid()) {
+						Block u = b.block.getRelative(BlockFace.UP);
+						while (u.isLiquid() && u.getRelative(BlockFace.UP).isLiquid())
+							u = u.getRelative(BlockFace.UP);
+						if (u.getY() > world.getSeaLevel()) {
+							u.setType(Material.AIR);
+							while (u.getRelative(BlockFace.DOWN).getY() != b.block.getY() && u.getY() > world.getSeaLevel()){
+								u = u.getRelative(BlockFace.DOWN);
+								u.setType(Material.AIR);
+							}
+						}
+					}
+
 					return;
 				} else {
 					/* figure out how this happened */
