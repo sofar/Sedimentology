@@ -1078,9 +1078,6 @@ displace:
 			} else {
 				Player player = (Player) sender;
 				player.sendMessage(msg);
-				//FIXME remove from release code
-				double temp = player.getLocation().getBlock().getTemperature();
-				player.sendMessage("your temp is: " + temp);
 			}
 			return true;
 		}
