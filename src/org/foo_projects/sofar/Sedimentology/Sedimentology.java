@@ -838,9 +838,9 @@ displace:
 				}
 			}
 
-			/* do not decay sand further unless in a wet Biome, and under water */
+			/* do not decay sand further unless in a wet Biome, and under water, and under sealevel */
 			if (b.getType() == Material.SAND) {
-				if (!(b.inClayBiome() && underwater)) {
+				if (!(b.inClayBiome() && underwater && b.block.getY() < world.getSeaLevel())) {
 					stat_ignored_sand++;
 					return;
 				}
