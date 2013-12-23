@@ -388,67 +388,77 @@ public final class Sedimentology extends JavaPlugin {
 		}
 
 		@SuppressWarnings("deprecation")
-		private void snow(int x, int y, int z, int base) {
+		private void snow(int x, int y, int z) {
 			byte snowcount = 0;
 			int snowheight = 0;
+			int stackheight = 1;
+			Block bottom = world.getBlockAt(x, y, z);
+			Block top = bottom;
 
-			Block block = world.getBlockAt(x, y, z);
+			while (true) {
+				if (top.getRelative(BlockFace.UP).getType() != Material.SNOW)
+					break;
 
-			/* don't stack snow high on leaves and plants */
-			if (isCrushable(block.getRelative(BlockFace.DOWN)) && block.getRelative(BlockFace.DOWN).getType() != Material.SNOW)
-				return;
+				top = top.getRelative(BlockFace.UP);
+				stackheight++;
+			}
 
-			/* snow stack? */
-			if (block.getRelative(BlockFace.UP).getType() == Material.SNOW) {
-				long stackheight = y - base + 1;
-				/* don't grow higher than 2 in ice biomes
-				 * unless up high, then grown 1 block every 16 elevation
-				 */
-				long finalmax = Math.max((base - 64) / 16, Math.round((0.25 - block.getTemperature()) / 0.9));
-				if (stackheight <= finalmax)
-					snow(x, y + 1, z, base);
+			/* thaw ? */
+			if (!world.hasStorm()) {
+				if (top.getLightLevel() >= 12) {
+					/* melt is slower than snowfall */
+					if (Math.random() > 0.25)
+						return;
+					if (top.getData() > 0) {
+						top.setData((byte)(top.getData() - 1));
+					} else {
+						top.setType(Material.AIR);
+					}
+				}
 				return;
 			}
 
-			/* cap snow depth at a certain level by not growing snow too high */
+			/* cold enough for snow accumulation? */
+			if (bottom.getTemperature() > 0.25)
+				return;
 
-			/* grow snow depth */
+			/* don't stack snow on leaves and plants */
+			if (isCrushable(bottom.getRelative(BlockFace.DOWN)))
+				return;
+
+			/* scan area for snow depth to even out snow height */
 			for (int xx = x - 1; xx <= x + 1; xx++) {
 				for (int zz = z - 1; zz <= z + 1; zz++) {
+					if ((xx == x) && (zz == z))
+						continue;
 stack:
-					for (int yy = y - 2; yy <= y + 2; yy++) {
-						if ((xx == x) && (zz == z))
-							continue;
+					for (int yy = top.getY() + 2; yy >= y - 2; yy--) {
 						if (world.getBlockAt(xx, yy, zz).getType() == Material.SNOW) {
 							snowcount++;
-							snowheight += world.getBlockAt(xx, yy, zz).getData() + (yy * 7);
+							snowheight += world.getBlockAt(xx, yy, zz).getData() + ((yy - 1) * 8);
 							break stack;
 						}
 					}
 				}
 			}
 
-			if (world.hasStorm() && (block.getTemperature() < 0.25) && (snowcount > 0)) {
-				/* grow, but must be completely surrounded by snow blocks */
-				if ((block.getData() == 7) && (snowcount == 8)) {
-					Block above = block.getRelative(BlockFace.UP);
-					above.setType(Material.SNOW);
-					above.setData((byte)0);
-				} else {
-					/* if neighbours do not have snow, don't stack so high */
-					int avg = (snowheight / snowcount);
-					if ((((y - 1) * 7) + block.getData()) < avg + 2)
-						block.setData((byte)Math.min((int)block.getData() + 1, ((snowcount > 0) ? snowcount - 1 : 0)));
-				}
-			} else if (block.getLightLevel() >= 12) {
-				/* melt is slower than snowfall */
-				if (Math.random() > 0.5)
-					return;
-				if (block.getData() > 0) {
-					block.setData((byte)(block.getData() - 1));
-				} else {
-					block.setType(Material.AIR);
-				}
+			/* don't grow snow if there's no neighbour blocks with snow */
+			if (snowcount == 0)
+				return;
+
+			/* snow stack? */
+			long maxstackheight = Math.max((y - 64) / 16, Math.round((0.25 - bottom.getTemperature()) / 0.9));
+
+			/* grow, but must be completely surrounded by snow blocks */
+			if ((top.getData() == 7) && (snowcount == 8) && (stackheight < maxstackheight)) {
+				Block above = top.getRelative(BlockFace.UP);
+				above.setType(Material.SNOW);
+				above.setData((byte)0);
+			} else {
+				/* if neighbours do not have snow, don't stack so high */
+				int avg = (snowheight / snowcount);
+				if ((((top.getY() - 1) * 8) + top.getData()) < avg + 2)
+					top.setData((byte)Math.min((int)top.getData() + 1, ((snowcount > 0) ? snowcount - 1 : 0)));
 			}
 		}
 
@@ -475,7 +485,7 @@ stack:
 			y = world.getHighestBlockYAt(x, z);
 			switch (world.getBlockAt(x, y, z).getType()) {
 				case SNOW:
-					snow(x, y, z, y);
+					snow(x, y, z);
 					undersnow = true;
 					break;
 				default:
