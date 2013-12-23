@@ -395,7 +395,7 @@ public final class Sedimentology extends JavaPlugin {
 			Block block = world.getBlockAt(x, y, z);
 
 			/* don't stack snow high on leaves and plants */
-			if (isCrushable(block.getRelative(BlockFace.DOWN)))
+			if (isCrushable(block.getRelative(BlockFace.DOWN)) && block.getRelative(BlockFace.DOWN).getType() != Material.SNOW)
 				return;
 
 			/* snow stack? */
