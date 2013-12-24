@@ -388,7 +388,7 @@ public final class Sedimentology extends JavaPlugin {
 		}
 
 		@SuppressWarnings("deprecation")
-		private void snow(int x, int y, int z) {
+		private int snow(int x, int y, int z) {
 			byte snowcount = 0;
 			int snowheight = 0;
 			int stackheight = 1;
@@ -408,23 +408,23 @@ public final class Sedimentology extends JavaPlugin {
 				if (top.getLightLevel() >= 12) {
 					/* melt is slower than snowfall */
 					if (Math.random() > 0.25)
-						return;
+						return stackheight;
 					if (top.getData() > 0) {
 						top.setData((byte)(top.getData() - 1));
 					} else {
 						top.setType(Material.AIR);
 					}
 				}
-				return;
+				return stackheight;
 			}
 
 			/* cold enough for snow accumulation? */
 			if (bottom.getTemperature() > 0.25)
-				return;
+				return stackheight;
 
 			/* don't stack snow on leaves and plants */
 			if (isCrushable(bottom.getRelative(BlockFace.DOWN)))
-				return;
+				return stackheight;
 
 			/* scan area for snow depth to even out snow height */
 			for (int xx = x - 1; xx <= x + 1; xx++) {
@@ -444,7 +444,7 @@ stack:
 
 			/* don't grow snow if there's no neighbour blocks with snow */
 			if (snowcount == 0)
-				return;
+				return stackheight;
 
 			/* snow stack? */
 			long maxstackheight = Math.max((y - 64) / 16, Math.round((0.25 - bottom.getTemperature()) / 0.9));
@@ -460,6 +460,8 @@ stack:
 				if ((((top.getY() - 1) * 8) + top.getData()) < avg + 2)
 					top.setData((byte)Math.min((int)top.getData() + 1, ((snowcount > 0) ? snowcount - 1 : 0)));
 			}
+
+			return stackheight;
 		}
 
 		public void sedBlock(int x, int z) {
@@ -467,6 +469,8 @@ stack:
 			SedDice dice = new SedDice(rnd);
 
 			int y;
+
+			int snowdepth = 0;
 
 			double hardness;
 			double resistance;
@@ -485,7 +489,7 @@ stack:
 			y = world.getHighestBlockYAt(x, z);
 			switch (world.getBlockAt(x, y, z).getType()) {
 				case SNOW:
-					snow(x, y, z);
+					snowdepth = snow(x, y, z);
 					undersnow = true;
 					break;
 				default:
@@ -565,6 +569,15 @@ stack:
 					return;
 			}
 
+			/*
+			 * if under a significant snow cover, lower hardness drastically.
+			 * 
+			 * There's no need to lower resistance, since that is the obvious result
+			 * of lowering the hardness as the resulting block will be easier to move.
+			 */
+			if ((undersnow) && (snowdepth >= 2))
+				hardness = Math.pow(hardness, 1 / (snowdepth - 0.5));
+
 			/* lower overall chance due to lack of water */
 			stormfactor = 0.1;
 			if (world.hasStorm()) {
@@ -607,14 +620,6 @@ stack:
 			if (dice.roll(waterfactor)) {
 				stat_ignored_water++;
 				return;
-			}
-
-			/* a snow cover slows down things a bit */
-			if (undersnow) {
-				if (dice.roll(0.25)) {
-					stat_ignored_water++;
-					return;
-				}
 			}
 
 			/* slow down when deeper under the sealevel */
@@ -730,6 +735,14 @@ displace:
 						return;
 				}
 
+				/* a snow cover slows down displacement */
+				if (undersnow) {
+					if (dice.roll(0.25)) {
+						stat_ignored_water++;
+						return;
+					}
+				}
+
 				/* roll to move it */
 				if (dice.roll(resistance)) {
 					stat_ignored_resistance++;
@@ -834,8 +847,6 @@ displace:
 
 			// degrade should factor in elevation?
 
-			//FIXME should detect the presence of ice near and factor in.
-
 			/*
 			 * compensate for speed - this prevents at high block rates that
 			 * everything just turns into a mudbath - We do want the occasional
@@ -848,6 +859,13 @@ displace:
 				}
 			}
 
+			/* do not decay gravel (and dirt, sand, etc.) further if under snow */
+			if ((b.getType() == Material.GRAVEL) && (undersnow)) {
+				stat_ignored_sand++;
+				return;
+			}
+
+			
 			/* do not decay sand further unless in a wet Biome, and under water, and under sealevel */
 			if (b.getType() == Material.SAND) {
 				if (!(b.inClayBiome() && underwater && b.block.getY() < world.getSeaLevel())) {
@@ -906,8 +924,9 @@ displace:
 							break;
 						default:
 							b.setType(Material.COBBLESTONE);
-							break;
+							break; /* breaks inner switch only */
 					}
+					break;
 				case COAL_ORE:
 				case IRON_ORE:
 				case LAPIS_ORE:
