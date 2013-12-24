@@ -53,7 +53,7 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
  * Water displaces sand and clay
  * Ice displaces all blocks
  *
- * Snow compacts into Ice
+ * Thicker snow packs behave like ice: crunch rocks into gravel
  *
  * Blocks do not disappear, the volume of blocks remains equal througout the process
  *
@@ -865,7 +865,6 @@ displace:
 				return;
 			}
 
-			
 			/* do not decay sand further unless in a wet Biome, and under water, and under sealevel */
 			if (b.getType() == Material.SAND) {
 				if (!(b.inClayBiome() && underwater && b.block.getY() < world.getSeaLevel())) {
