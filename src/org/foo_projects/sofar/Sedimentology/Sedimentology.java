@@ -403,29 +403,6 @@ public final class Sedimentology extends JavaPlugin {
 				stackheight++;
 			}
 
-			/* thaw ? */
-			if (!world.hasStorm()) {
-				if (top.getLightLevel() >= 12) {
-					/* melt is slower than snowfall */
-					if (Math.random() > 0.25)
-						return stackheight;
-					if (top.getData() > 0) {
-						top.setData((byte)(top.getData() - 1));
-					} else {
-						top.setType(Material.AIR);
-					}
-				}
-				return stackheight;
-			}
-
-			/* cold enough for snow accumulation? */
-			if (bottom.getTemperature() > 0.25)
-				return stackheight;
-
-			/* don't stack snow on leaves and plants */
-			if (isCrushable(bottom.getRelative(BlockFace.DOWN)))
-				return stackheight;
-
 			/* scan area for snow depth to even out snow height */
 			for (int xx = x - 1; xx <= x + 1; xx++) {
 				for (int zz = z - 1; zz <= z + 1; zz++) {
@@ -441,6 +418,39 @@ stack:
 					}
 				}
 			}
+
+			/* thaw ? */
+			if (!world.hasStorm()) {
+				if (top.getLightLevel() >= 12) {
+					/* melt is slower than snowfall */
+					if (Math.random() > 0.25)
+						return stackheight;
+					if (top.getData() > 0) {
+						/* smooth snow melt */
+						if (snowcount > 0) {
+							int avg = (snowheight / snowcount);
+							if ((((top.getY() - 1) * 8) + top.getData()) > avg)
+								top.setData((byte)(top.getData() - 1));
+						} else {
+							top.setData((byte)(top.getData() - 1));
+						}
+					} else {
+						/* remove snow only at the edges */
+						if (snowcount < 6 || top != bottom)
+							top.setType(Material.AIR);
+					}
+				}
+				return stackheight;
+			}
+
+			/* cold enough for snow accumulation? */
+			if (bottom.getTemperature() > 0.25)
+				return stackheight;
+
+			/* don't stack snow on leaves and plants */
+			if (isCrushable(bottom.getRelative(BlockFace.DOWN)))
+				return stackheight;
+
 
 			/* don't grow snow if there's no neighbour blocks with snow */
 			if (snowcount == 0)
