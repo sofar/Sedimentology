@@ -366,6 +366,8 @@ public final class Sedimentology extends JavaPlugin {
 
 		public void sedRandomBlock() {
 			Chunk ChunkList[] = world.getLoadedChunks();
+			if (ChunkList.length == 0)
+				return;
 			Chunk c = ChunkList[(int) Math.abs(rnd.nextDouble() * ChunkList.length)];
 
 			int bx = (int)(Math.round(rnd.nextDouble() * 16));
