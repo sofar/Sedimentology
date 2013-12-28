@@ -1,4 +1,5 @@
 blocks: 10
+snowblocks: 100
 ticks: 1
 protect: true
 worlds:

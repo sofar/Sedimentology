@@ -87,7 +87,13 @@ public final class Sedimentology extends JavaPlugin {
 	private int stat_lasty;
 	private int stat_lastz;
 
+	private enum sedType {
+		SED_BLOCK,
+		SED_SNOW;
+	}
+
 	private long conf_blocks = 10;
+	private long conf_snowblocks = 100;
 	private long conf_ticks = 1;
 	private boolean conf_protect = true;
 	private boolean conf_compensate = true;
@@ -364,7 +370,7 @@ public final class Sedimentology extends JavaPlugin {
 			chunkMap.put(key, 0);
 		}
 
-		public void sedRandomBlock() {
+		public void sedRandomBlock(sedType type) {
 			Chunk ChunkList[] = world.getLoadedChunks();
 			if (ChunkList.length == 0)
 				return;
@@ -386,13 +392,21 @@ public final class Sedimentology extends JavaPlugin {
 			int x = bx + (c.getX() * 16);
 			int z = bz + (c.getZ() * 16);
 
-			sedBlock(x, z);
+			switch(type) {
+			case SED_BLOCK:
+				sedBlock(x, z);
+				break;
+			case SED_SNOW:
+				sedSnowBlock(x, z);
+				break;
+			default:
+				return;
+			}
+			
 		}
 
-		@SuppressWarnings("deprecation")
-		private int snow(int x, int y, int z) {
-			byte snowcount = 0;
-			int snowheight = 0;
+		private int snowdepth(int x, int y, int z)
+		{
 			int stackheight = 1;
 			Block bottom = world.getBlockAt(x, y, z);
 			Block top = bottom;
@@ -404,6 +418,20 @@ public final class Sedimentology extends JavaPlugin {
 				top = top.getRelative(BlockFace.UP);
 				stackheight++;
 			}
+
+			return stackheight;
+		}
+
+		@SuppressWarnings("deprecation")
+		private int snow(int x, int y, int z) {
+			byte snowcount = 0;
+			int snowheight = 0;
+			int stackheight;
+			Block bottom = world.getBlockAt(x, y, z);
+
+			stackheight = snowdepth(x, y, z);
+
+			Block top = world.getBlockAt(x, y + stackheight - 1, z);
 
 			/* scan area for snow depth to even out snow height */
 			for (int xx = x - 1; xx <= x + 1; xx++) {
@@ -424,8 +452,20 @@ stack:
 			/* thaw ? */
 			if (!world.hasStorm()) {
 				if (top.getLightLevel() >= 12) {
-					/* melt is slower than snowfall */
-					if (Math.random() > 0.25)
+					/*
+					 * melt snow slower than it's created in-game.
+					 * 
+					 * Math behind this base factor: downfall happens for 3/4 of a minecraft day every 7 minecraft
+					 * days. Therefore, if we want to balance fall/melt we need to make the chance that snow melts
+					 * equal to the chance that snow falls.
+					 * 
+					 * at 3/4 a day, snowfall can leave us (6 * 10 + 5) = 65 hours daylight, or
+					 * (6 * 10) = 60 hours daylight, out of 70. During these 65-70 hours our snow is melted down
+					 * at the same random rate as we were stacking it higher.
+					 * 
+					 * To introduce jitter, we median 65-70 = 67.5 / 70 = 0.964 => 1 - 0.964 = 0.0357
+					 */
+					if (Math.random() > 0.0357)
 						return stackheight;
 					if (top.getData() > 0) {
 						/* smooth snow melt */
@@ -476,6 +516,21 @@ stack:
 			return stackheight;
 		}
 
+		private void sedSnowBlock(int x, int z)
+		{
+			World world = this.world;
+			int y;
+
+			y = world.getHighestBlockYAt(x, z);
+			switch (world.getBlockAt(x, y, z).getType()) {
+				case SNOW:
+					snow(x, y, z);
+					break;
+				default:
+					break;
+			}
+		}
+
 		public void sedBlock(int x, int z) {
 			World world = this.world;
 			SedDice dice = new SedDice(rnd);
@@ -501,7 +556,7 @@ stack:
 			y = world.getHighestBlockYAt(x, z);
 			switch (world.getBlockAt(x, y, z).getType()) {
 				case SNOW:
-					snowdepth = snow(x, y, z);
+					snowdepth = snowdepth(x, y, z);
 					undersnow = true;
 					break;
 				default:
@@ -1004,8 +1059,10 @@ displace:
 	private class SedimentologyRunnable implements Runnable {
 		public void run() {
 			for (SedWorld sedWorld: sedWorldList) {
+				for (int j = 0; j < conf_snowblocks; j++)
+					sedWorld.sedRandomBlock(sedType.SED_SNOW);
 				for (int j = 0; j < conf_blocks; j++)
-					sedWorld.sedRandomBlock();
+					sedWorld.sedRandomBlock(sedType.SED_BLOCK);
 			}
 		}
 	}
@@ -1018,6 +1075,7 @@ displace:
 					"/sedimentology stats - display statistics\n" +
 					"/sedimentology list - display enabled worlds\n" +
 					"/sedimentology blocks <int> - sed number of block attempts per cycle\n" +
+					"/sedimentology snowblocks <int> - sed number of snowblock attempts per cycle\n" +
 					"/sedimentology enable <world> - enable for world\n" +
 					"/sedimentology disable <world> - enable for world";
 
@@ -1030,6 +1088,14 @@ displace:
 							saveConfig();
 						}
 						msg = "number of blocks set to " + conf_blocks;
+						break;
+					case "snowblocks":
+						if (split.length == 2) {
+							conf_snowblocks = Long.parseLong(split[1]);
+							getConfig().set("snowblocks", conf_snowblocks);
+							saveConfig();
+						}
+						msg = "number of snowblocks set to " + conf_snowblocks;
 						break;
 					case "list":
 						msg = "plugin enabled for worlds:\n";
@@ -1060,11 +1126,11 @@ displace:
 					case "stats":
 						World world = org.bukkit.Bukkit.getWorld("world");
 						Chunk ChunkList[] = world.getLoadedChunks();
-						msg = String.format("blocks: %d ticks: %d protect: %s\n" +
+						msg = String.format("blocks: %d snowblocks: %d ticks: %d protect: %s\n" +
 									"considered %d, displaced %d, degraded %d blocks in %d chunks %d errors\nlast one at %d %d %d\n" +
-									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, wave %d, sand %d, hardness %d," +
+									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, wave %d, sand %d, hardness %d, " +
 									"protected %d, locked in %d, rate %d",
-									conf_blocks, conf_ticks, conf_protect ? "true" : "false",
+									conf_blocks, conf_snowblocks, conf_ticks, conf_protect ? "true" : "false",
 									stat_considered, stat_displaced, stat_degraded, ChunkList.length, stat_errors,
 									stat_lastx, stat_lasty, stat_lastz,
 									stat_ignored_edge, stat_ignored_type, stat_ignored_storm, stat_ignored_vegetation,
@@ -1186,8 +1252,9 @@ displace:
 		saveDefaultConfig();
 
 		conf_blocks = getConfig().getInt("blocks");
+		conf_snowblocks = getConfig().getInt("snowblocks");
 		conf_ticks = getConfig().getInt("ticks");
-		getLogger().info("blocks: " + conf_blocks + ", ticks: " + conf_ticks);
+		getLogger().info("blocks: " + conf_blocks + " snowblocks: " + conf_snowblocks + " ticks: " + conf_ticks);
 
 		List<String> worldStringList = getConfig().getStringList("worlds");
 
