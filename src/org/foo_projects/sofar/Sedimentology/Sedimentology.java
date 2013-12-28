@@ -892,7 +892,7 @@ displace:
 						Block u = b.block.getRelative(BlockFace.UP);
 						while (u.isLiquid() && u.getRelative(BlockFace.UP).isLiquid())
 							u = u.getRelative(BlockFace.UP);
-						if (u.getY() > world.getSeaLevel()) {
+						if (u.getY() > world.getSeaLevel() && (u.getData() != 0)) {
 							u.setType(Material.AIR);
 							while (u.getRelative(BlockFace.DOWN).getY() != b.block.getY() && u.getY() > world.getSeaLevel()){
 								u = u.getRelative(BlockFace.DOWN);
