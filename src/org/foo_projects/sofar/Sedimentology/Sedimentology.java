@@ -17,7 +17,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -32,7 +31,6 @@ import com.massivecraft.factions.entity.BoardColls;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.mcore.ps.PS;
 
-import com.palmergames.bukkit.towny.Towny;
 import com.palmergames.bukkit.towny.object.TownyUniverse;
 
 import com.sk89q.worldguard.bukkit.WGBukkit;
@@ -101,8 +99,6 @@ public final class Sedimentology extends JavaPlugin {
 	private boolean have_factions = false;
 	private boolean have_towny = false;
 	private boolean have_worldguard = false;
-
-	private Object towny_universe = null;
 
 	private boolean enableWorld(String worldName)
 	{
@@ -306,7 +302,7 @@ public final class Sedimentology extends JavaPlugin {
 					return true;
 			}
 			if (have_towny) {
-				if (((TownyUniverse)towny_universe).getTownBlock(block.getLocation()) != null)
+				if (TownyUniverse.getTownBlock(block.getLocation()) != null)
 					return true;
 			}
 			if (have_worldguard) {
@@ -1267,13 +1263,8 @@ displace:
 			have_factions = true;
 
 		/* Towny */
-		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Towny")) {
-			Plugin p = org.bukkit.Bukkit.getPluginManager().getPlugin("Towny");
-			if (p != null) {
-				towny_universe = ((Towny)(p)).getTownyUniverse();
-				have_towny = true;
-			}
-		}
+		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Towny"))
+			have_towny = true;
 
 		/* WorldGuard */
 		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("WorldGuard"))
