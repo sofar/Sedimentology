@@ -100,6 +100,18 @@ public final class Sedimentology extends JavaPlugin {
 	private boolean have_towny = false;
 	private boolean have_worldguard = false;
 
+	@SuppressWarnings("deprecation")
+	private byte getData(Block block)
+	{
+		return block.getData();
+	}
+
+	@SuppressWarnings("deprecation")
+	private void setData(Block block, byte data)
+	{
+		block.setData(data);
+	}
+
 	private boolean enableWorld(String worldName)
 	{
 		getLogger().info("enabling world \"" + worldName + "\"");
@@ -324,14 +336,12 @@ public final class Sedimentology extends JavaPlugin {
 			block.setType(material);
 		}
 
-		@SuppressWarnings("deprecation")
 		public byte getData() {
-			return block.getData();
+			return Sedimentology.this.getData(block);
 		}
 
-		@SuppressWarnings("deprecation")
 		public void setData(byte data) {
-			block.setData(data);
+			Sedimentology.this.setData(block, data);
 		}
 
 		public Biome getBiome() {
@@ -418,7 +428,6 @@ public final class Sedimentology extends JavaPlugin {
 			return stackheight;
 		}
 
-		@SuppressWarnings("deprecation")
 		private int snow(int x, int y, int z) {
 			byte snowcount = 0;
 			int snowheight = 0;
@@ -438,7 +447,7 @@ stack:
 					for (int yy = top.getY() + 2; yy >= y - 2; yy--) {
 						if (world.getBlockAt(xx, yy, zz).getType() == Material.SNOW) {
 							snowcount++;
-							snowheight += world.getBlockAt(xx, yy, zz).getData() + ((yy - 1) * 8);
+							snowheight += getData(world.getBlockAt(xx, yy, zz)) + ((yy - 1) * 8);
 							break stack;
 						}
 					}
@@ -463,14 +472,14 @@ stack:
 					 */
 					if (Math.random() > 0.0357)
 						return stackheight;
-					if (top.getData() > 0) {
+					if (getData(top) > 0) {
 						/* smooth snow melt */
 						if (snowcount > 0) {
 							int avg = (snowheight / snowcount);
-							if ((((top.getY() - 1) * 8) + top.getData()) > avg)
-								top.setData((byte)(top.getData() - 1));
+							if ((((top.getY() - 1) * 8) + getData(top)) > avg)
+								setData(top, (byte)(getData(top) - 1));
 						} else {
-							top.setData((byte)(top.getData() - 1));
+							setData(top, (byte)(getData(top) - 1));
 						}
 					} else {
 						/* remove snow only at the edges */
@@ -498,15 +507,15 @@ stack:
 			long maxstackheight = Math.max((y - 64) / 16, Math.round((0.25 - bottom.getTemperature()) / 0.9));
 
 			/* grow, but must be completely surrounded by snow blocks */
-			if ((top.getData() == 7) && (snowcount == 8) && (stackheight < maxstackheight)) {
+			if ((getData(top) == 7) && (snowcount == 8) && (stackheight < maxstackheight)) {
 				Block above = top.getRelative(BlockFace.UP);
 				above.setType(Material.SNOW);
-				above.setData((byte)0);
+				setData(above, (byte)0);
 			} else {
 				/* if neighbours do not have snow, don't stack so high */
 				int avg = (snowheight / snowcount);
-				if ((((top.getY() - 1) * 8) + top.getData()) < avg + 2)
-					top.setData((byte)Math.min((int)top.getData() + 1, ((snowcount > 0) ? snowcount - 1 : 0)));
+				if ((((top.getY() - 1) * 8) + getData(top)) < avg + 2)
+					setData(top, (byte)Math.min((int)getData(top) + 1, ((snowcount > 0) ? snowcount - 1 : 0)));
 			}
 
 			return stackheight;
@@ -888,7 +897,7 @@ displace:
 						Block u = b.block.getRelative(BlockFace.UP);
 						while (u.isLiquid() && u.getRelative(BlockFace.UP).isLiquid())
 							u = u.getRelative(BlockFace.UP);
-						if (u.getY() > world.getSeaLevel() && (u.getData() != 0)) {
+						if (u.getY() > world.getSeaLevel() && (getData(u) != 0)) {
 							u.setType(Material.AIR);
 							while (u.getRelative(BlockFace.DOWN).getY() != b.block.getY() && u.getY() > world.getSeaLevel()){
 								u = u.getRelative(BlockFace.DOWN);
