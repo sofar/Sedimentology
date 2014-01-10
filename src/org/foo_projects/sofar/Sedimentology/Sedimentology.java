@@ -447,7 +447,7 @@ stack:
 					for (int yy = top.getY() + 2; yy >= y - 2; yy--) {
 						if (world.getBlockAt(xx, yy, zz).getType() == Material.SNOW) {
 							snowcount++;
-							snowheight += getData(world.getBlockAt(xx, yy, zz)) + ((yy - 1) * 8);
+							snowheight += getData(world.getBlockAt(xx, yy, zz)) + (yy * 8) + 1;
 							break stack;
 						}
 					}
@@ -457,33 +457,31 @@ stack:
 			/* thaw ? */
 			if (!world.hasStorm()) {
 				if (top.getLightLevel() >= 12) {
-					/*
-					 * melt snow slower than it's created in-game.
+					/* Snow melt is currently slower than snow accumulation, but melt happens more than
+					 * snow accumulation. This means that for default setting, you're most likely will see
+					 * snow mostly accumulate to near the max snow levels. However, increasing snowblocks
+					 * higher will result in the max snow height being reached quicker, and subsequently snow
+					 * decaying faster than it grows, causing snow to melt more.
 					 * 
-					 * Math behind this base factor: downfall happens for 3/4 of a minecraft day every 7 minecraft
-					 * days. Therefore, if we want to balance fall/melt we need to make the chance that snow melts
-					 * equal to the chance that snow falls.
-					 * 
-					 * at 3/4 a day, snowfall can leave us (6 * 10 + 5) = 65 hours daylight, or
-					 * (6 * 10) = 60 hours daylight, out of 70. During these 65-70 hours our snow is melted down
-					 * at the same random rate as we were stacking it higher.
-					 * 
-					 * To introduce jitter, we median 65-70 = 67.5 / 70 = 0.964 => 1 - 0.964 = 0.0357
+					 * Bottom line - if you want lots of snow, set snowblocks low (10 or lower), but if you
+					 * prefer snow to come and go fast, set snowblocks high (50-100).
 					 */
-					if (Math.random() > 0.0357)
-						return stackheight;
-					if (getData(top) > 0) {
+					if ((top.getY() != bottom.getY()) || (getData(top) > 0)) {
 						/* smooth snow melt */
 						if (snowcount > 0) {
 							int avg = (snowheight / snowcount);
-							if ((((top.getY() - 1) * 8) + getData(top)) > avg)
-								setData(top, (byte)(getData(top) - 1));
+							if ((((top.getY() * 8) + getData(top) + 1) > avg - 1) || (Math.random() > 0.9)) {
+								if (getData(top) > 0)
+									setData(top, (byte)(getData(top) - 1));
+								else
+									top.setType(Material.AIR);
+							}
 						} else {
 							setData(top, (byte)(getData(top) - 1));
 						}
 					} else {
 						/* remove snow only at the edges */
-						if (snowcount < 6 || top != bottom)
+						if ((snowcount < 6) && (top.getY() == bottom.getY()))
 							top.setType(Material.AIR);
 					}
 				}
@@ -514,7 +512,7 @@ stack:
 			} else {
 				/* if neighbours do not have snow, don't stack so high */
 				int avg = (snowheight / snowcount);
-				if ((((top.getY() - 1) * 8) + getData(top)) < avg + 2)
+				if ((((top.getY() * 8) + getData(top) + 1) < avg + 1) || (Math.random() > 0.9))
 					setData(top, (byte)Math.min((int)getData(top) + 1, ((snowcount > 0) ? snowcount - 1 : 0)));
 			}
 
@@ -1167,6 +1165,39 @@ displace:
 									for (int x = x1; x <= x2; x++)
 										for (int z = z1; z <= z2; z++)
 											sw.sedBlock(x, z);
+								msg = "test cycle finished";
+								break;
+							} else {
+								msg = "Invalid world name - world must be enabled already";
+								break;
+							}
+						}
+						break;
+					case "snowtest":
+						if (split.length != 7) {
+							msg = "snowtest requires 6 parameters: world x1 z1 x2 z2 blocks";
+							break;
+						};
+						for (SedWorld sw: sedWorldList) {
+							if (sw.world.getName().equals(split[1])) {
+								int x1 = Integer.parseInt(split[2]);
+								int z1 = Integer.parseInt(split[3]);
+								int x2 = Integer.parseInt(split[4]);
+								int z2 = Integer.parseInt(split[5]);
+								if (x1 > x2) {
+									int t = x1;
+									x1 = x2;
+									x2 = t;
+								}
+								if (z1 > z2) {
+									int t = z1;
+									z1 = z2;
+									z2 = t;
+								}
+								for (long i = 0; i < Long.parseLong(split[6]); i++)
+									for (int x = x1; x <= x2; x++)
+										for (int z = z1; z <= z2; z++)
+											sw.sedSnowBlock(x, z);
 								msg = "test cycle finished";
 								break;
 							} else {
