@@ -1307,13 +1307,13 @@ displace:
 		/* Detect Factions */
 		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Factions")) {
 			try {
-				/* 2.x versions based on mcore */
-				Class.forName("com.massivecraft.factions.entity", false, null);
+				/* this is an old API thing */
+				new com.massivecraft.factions.FLocation();
+			} catch (NoClassDefFoundError e) {
 				have_factions = true;
-			} catch(ClassNotFoundException e) {
-				/* 1.6.9.5 and below */
-				have_factions_old = true;
 			}
+			if (!have_factions)
+				have_factions_old = true;
 		}
 
 		/* Towny */
