@@ -97,6 +97,7 @@ public final class Sedimentology extends JavaPlugin {
 	private boolean conf_compensate = true;
 
 	private boolean have_factions = false;
+	private boolean have_factions_old = false;
 	private boolean have_towny = false;
 	private boolean have_worldguard = false;
 
@@ -308,6 +309,11 @@ public final class Sedimentology extends JavaPlugin {
 			if (!conf_protect)
 				return false;
 
+			if (have_factions_old) {
+				com.massivecraft.factions.Faction faction = com.massivecraft.factions.Board.getFactionAt(new com.massivecraft.factions.FLocation(block));
+				if (!faction.isNone())
+					return true;
+			}
 			if (have_factions) {
 				Faction faction = BoardColls.get().getFactionAt(PS.valueOf(block.getLocation()));
 				if (!faction.isNone())
@@ -1299,8 +1305,16 @@ displace:
 			enableWorld(worldStringList.get(i));
 
 		/* Detect Factions */
-		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Factions"))
-			have_factions = true;
+		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Factions")) {
+			try {
+				/* 2.x versions based on mcore */
+				Class.forName("com.massivecraft.factions.entity", false, null);
+				have_factions = true;
+			} catch(ClassNotFoundException e) {
+				/* 1.6.9.5 and below */
+				have_factions_old = true;
+			}
+		}
 
 		/* Towny */
 		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Towny"))
@@ -1311,7 +1325,7 @@ displace:
 			have_worldguard = true;
 
 		getLogger().info("Protection plugins: " +
-						(have_factions ? "+" : "-") + "Factions, " +
+						(have_factions | have_factions_old ? "+" : "-") + "Factions, " +
 						(have_towny ? "+" : "-") + "Towny, " +
 						(have_worldguard ? "+" : "-") + "WorldGuard, "
 						);
