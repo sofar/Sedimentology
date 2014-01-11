@@ -52,6 +52,15 @@ factors involved, this number will almost never equal the number of
 modifications made per cycle - but increasing it will accelerate the
 erosion process.
 
+  /sedimentology snowblocks <integer>
+
+Modify the number of blocks per cycle that the plugin will
+attempt to consider for snow accumulation. Snow only accumulates
+in proper conditions and daylight exposure will melt snow stacks
+down slowly. Snow growth and melt can happen in protected regions,
+and the thickness of the snow cover influences the erosion speed
+of involved blocks.
+
   /sedimentology protect <boolean>
 
 This option was removed in Sedimentology-6. Instead, the flag can be
@@ -82,6 +91,7 @@ overwritten if you change settings in the game (default settings
 shown here):
 
 blocks: 10
+snowblocks: 10
 ticks: 1
 protect: true
 worlds:
@@ -93,6 +103,15 @@ makes each interval to modify the world. The higher the number,
 the more blocks will move or decay. If 0, the plugin is effectively
 disabled. High numbers can cause lag and a high server load. Numbers
 above 500 are not advised for deployment even with high end servers.
+
+- snowblocks:
+    modifies the amount of attempts per world that the plugin
+makes each interval to stack/melt snow. The higher the number, the
+faster snow will accumulate to the maximum level, and the faster it
+will melt. In general, due to the weather cycle in minecraft, the
+default setting will cause snow to accumulate but not melt away. Higher
+settings will cause snow levels to fluctuate more wildly between thick
+covers and green ice plains.
 
 - ticks:
     modifies the interval, in minecraft ticks, that the plugin
@@ -120,6 +139,12 @@ disabled with the /sedimentology protect command.
 While I tested Factions and WorldGuard support thoroughly, I can't currently
 test Towny integration, so feedback appreciated if you can test this for me,
 and the result is as expected.
+
+Tested are these versions:
+- Factions 1.6.9.5
+- Factions 2.3.0 with mcore 7.0.1
+- Towny 0.84.0.9
+- WorldGuard 5.8
 
 Bugs / Code For bugs, tips, donations please feel free to contact me:
 
