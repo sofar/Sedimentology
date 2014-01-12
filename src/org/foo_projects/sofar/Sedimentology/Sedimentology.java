@@ -27,6 +27,9 @@ import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import com.bekvon.bukkit.residence.Residence;
+import com.bekvon.bukkit.residence.protection.ClaimedResidence;
+
 import com.massivecraft.factions.entity.BoardColls;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.mcore.ps.PS;
@@ -100,6 +103,7 @@ public final class Sedimentology extends JavaPlugin {
 	private boolean have_factions_old = false;
 	private boolean have_towny = false;
 	private boolean have_worldguard = false;
+	private boolean have_residence = false;
 
 	@SuppressWarnings("deprecation")
 	private byte getData(Block block)
@@ -329,6 +333,11 @@ public final class Sedimentology extends JavaPlugin {
 					return false;
 				ApplicableRegionSet set = rm.getApplicableRegions(block.getLocation());
 				return (set.size() > 0);
+			}
+			if (have_residence) {
+				ClaimedResidence res = Residence.getResidenceManager().getByLoc(block.getLocation());
+				if (res != null)
+					return true;
 			}
 
 			return false;
@@ -1320,11 +1329,15 @@ command:
 		/* WorldGuard */
 		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("WorldGuard"))
 			have_worldguard = true;
+		
+		if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Residence"))
+				have_residence = true;
 
 		getLogger().info("Protection plugins: " +
 						(have_factions | have_factions_old ? "+" : "-") + "Factions, " +
 						(have_towny ? "+" : "-") + "Towny, " +
-						(have_worldguard ? "+" : "-") + "WorldGuard, "
+						(have_worldguard ? "+" : "-") + "WorldGuard, " +
+						(have_residence ? "+" : "-") + "Residence"
 						);
 
 		conf_protect = getConfig().getBoolean("protect");
