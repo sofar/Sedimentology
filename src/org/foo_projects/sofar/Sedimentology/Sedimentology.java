@@ -1088,6 +1088,7 @@ displace:
 					"/sedimentology enable <world> - enable for world\n" +
 					"/sedimentology disable <world> - enable for world";
 
+command:
 			if (split.length >= 1) {
 				switch (split[0]) {
 					case "blocks":
@@ -1172,12 +1173,10 @@ displace:
 										for (int z = z1; z <= z2; z++)
 											sw.sedBlock(x, z);
 								msg = "test cycle finished";
-								break;
-							} else {
-								msg = "Invalid world name - world must be enabled already";
-								break;
+								break command;
 							}
 						}
+						msg = "Invalid world name - world must be enabled already";
 						break;
 					case "snowtest":
 						if (split.length != 7) {
@@ -1205,12 +1204,10 @@ displace:
 										for (int z = z1; z <= z2; z++)
 											sw.sedSnowBlock(x, z);
 								msg = "test cycle finished";
-								break;
-							} else {
-								msg = "Invalid world name - world must be enabled already";
-								break;
+								break command;
 							}
 						}
+						msg = "Invalid world name - world must be enabled already";
 						break;
 					case "help":
 					default:
