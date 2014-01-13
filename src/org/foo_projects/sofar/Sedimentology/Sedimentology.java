@@ -1143,14 +1143,15 @@ command:
 							msg = "disabled for world \"" + split[1] + "\"";
 						break;
 					case "stats":
-						World world = org.bukkit.Bukkit.getWorld("world");
-						Chunk ChunkList[] = world.getLoadedChunks();
+						long chunks = 0;
+						for (SedWorld sw: sedWorldList)
+							chunks += sw.world.getLoadedChunks().length;
 						msg = String.format("blocks: %d snowblocks: %d ticks: %d protect: %s\n" +
 									"considered %d, displaced %d, degraded %d blocks in %d chunks %d errors\nlast one at %d %d %d\n" +
 									"ignored: edge %d, type %d, storm %d, vegetation %d, resistance %d, water %d, wave %d, sand %d, hardness %d, " +
 									"protected %d, locked in %d, rate %d",
 									conf_blocks, conf_snowblocks, conf_ticks, conf_protect ? "true" : "false",
-									stat_considered, stat_displaced, stat_degraded, ChunkList.length, stat_errors,
+									stat_considered, stat_displaced, stat_degraded, chunks, stat_errors,
 									stat_lastx, stat_lasty, stat_lastz,
 									stat_ignored_edge, stat_ignored_type, stat_ignored_storm, stat_ignored_vegetation,
 									stat_ignored_resistance, stat_ignored_water, stat_ignored_wave, stat_ignored_sand, stat_ignored_hardness,
