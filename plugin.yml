@@ -1,6 +1,6 @@
 name: Sedimentology
 main: org.foo_projects.sofar.Sedimentology.Sedimentology
-version: 9
+version: 10
 softdepend: [Factions, Towny, WorldGuard, Residence]
 commands:
     sedimentology:
@@ -9,3 +9,7 @@ commands:
         usage: /sedimentology ...
         permission: sedimentology
         permission-message: You do not have sufficient privileges to do that!
+permissions:
+    sedimentology:
+        description: Gives access to the sedimentology command
+        default: op
